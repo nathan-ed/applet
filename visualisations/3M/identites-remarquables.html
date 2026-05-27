@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identités Remarquables - Visualisation</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsxgraph@1.7.0/distrib/jsxgraphcore.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/jsxgraph@1.7.0/distrib/jsxgraph.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .control-group input {
+            width: 80px;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1.1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .control-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .identities-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .identity-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .identity-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .identity-title {
+            text-align: center;
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .formula {
+            text-align: center;
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 15px;
+            font-family: 'Courier New', monospace;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .board-container {
+            width: 100%;
+            height: 350px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .calculation {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 1.1em;
+            color: #555;
+            background: rgba(118, 75, 162, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .controls {
+                gap: 15px;
+            }
+
+            .identities-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .board-container {
+                height: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.7em;
+            }
+
+            .identity-card {
+                padding: 15px;
+            }
+
+            .board-container {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Identités Remarquables</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="aValue">Valeur de a :</label>
+                <input type="number" id="aValue" value="3" min="1" max="6" step="0.5">
+            </div>
+            <div class="control-group">
+                <label for="bValue">Valeur de b :</label>
+                <input type="number" id="bValue" value="2" min="1" max="6" step="0.5">
+            </div>
+        </div>
+
+        <div class="identities-container">
+            <div class="identity-card">
+                <div class="identity-title">(a + b)²</div>
+                <div class="formula" id="formula1">(3 + 2)² = 3² + 2×3×2 + 2²</div>
+                <div class="board-container">
+                    <div id="board1" class="jxgbox" style="width: 100%; height: 100%;"></div>
+                </div>
+                <div class="calculation" id="calc1">25 = 9 + 12 + 4 = 25 ✓</div>
+            </div>
+
+            <div class="identity-card">
+                <div class="identity-title">(a - b)²</div>
+                <div class="formula" id="formula2">(3 - 2)² = 3² - 2×3×2 + 2²</div>
+                <div class="board-container">
+                    <div id="board2" class="jxgbox" style="width: 100%; height: 100%;"></div>
+                </div>
+                <div class="calculation" id="calc2">1 = 9 - 12 + 4 = 1 ✓</div>
+            </div>
+
+            <div class="identity-card">
+                <div class="identity-title">(a + b)(a - b)</div>
+                <div class="formula" id="formula3">(3 + 2)(3 - 2) = 3² - 2²</div>
+                <div class="board-container">
+                    <div id="board3" class="jxgbox" style="width: 100%; height: 100%;"></div>
+                </div>
+                <div class="calculation" id="calc3">5 = 9 - 4 = 5 ✓</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let board1, board2, board3;
+        let a = 3, b = 2;
+
+        // Initialisation des boards
+        function initBoards() {
+            const boardOptions = {
+                boundingbox: [-1, 8, 8, -1],
+                axis: false,
+                grid: false,
+                showCopyright: false,
+                showNavigation: false
+            };
+
+            board1 = JXG.JSXGraph.initBoard('board1', boardOptions);
+            board2 = JXG.JSXGraph.initBoard('board2', boardOptions);
+            board3 = JXG.JSXGraph.initBoard('board3', boardOptions);
+
+            updateAll();
+        }
+
+        // Visualisation de (a+b)²
+        function drawIdentity1() {
+            board1.suspendUpdate();
+            JXG.JSXGraph.freeBoard(board1);
+            board1 = JXG.JSXGraph.initBoard('board1', {
+                boundingbox: [-1, 8, 8, -1],
+                axis: false,
+                grid: false,
+                showCopyright: false,
+                showNavigation: false
+            });
+            
+            // Carré principal (a+b)²
+            const mainSquare = board1.create('polygon', [
+                [0, 0], [a + b, 0], [a + b, a + b], [0, a + b]
+            ], {
+                fillColor: 'rgba(102, 126, 234, 0.3)',
+                strokeColor: '#333',
+                strokeWidth: 2
+            });
+
+            // Subdivision en rectangles
+            // Rectangle a²
+            board1.create('polygon', [
+                [0, b], [a, b], [a, a + b], [0, a + b]
+            ], {
+                fillColor: 'rgba(255, 99, 132, 0.6)',
+                strokeColor: '#333',
+                strokeWidth: 1
+            });
+
+            // Rectangle ab (haut)
+            board1.create('polygon', [
+                [a, b], [a + b, b], [a + b, a + b], [a, a + b]
+            ], {
+                fillColor: 'rgba(54, 162, 235, 0.6)',
+                strokeColor: '#333',
+                strokeWidth: 1
+            });
+
+            // Rectangle ab (bas)
+            board1.create('polygon', [
+                [0, 0], [a, 0], [a, b], [0, b]
+            ], {
+                fillColor: 'rgba(54, 162, 235, 0.6)',
+                strokeColor: '#333',
+                strokeWidth: 1
+            });
+
+            // Rectangle b²
+            board1.create('polygon', [
+                [a, 0], [a + b, 0], [a + b, b], [a, b]
+            ], {
+                fillColor: 'rgba(255, 206, 84, 0.6)',
+                strokeColor: '#333',
+                strokeWidth: 1
+            });
+
+            // Labels
+            board1.create('text', [a/2, (a + b + b)/2, 'a²'], {
+                fontSize: 16, fontWeight: 'bold', color: '#333'
+            });
+            board1.create('text', [(a + a + b)/2, (a + b + b)/2, 'ab'], {
+                fontSize: 16, fontWeight: 'bold', color: '#333'
+            });
+            board1.create('text', [a/2, b/2, 'ab'], {
+                fontSize: 16, fontWeight: 'bold', color: '#333'
+            });
+            board1.create('text', [(a + a + b)/2, b/2, 'b²'], {
+                fontSize: 16, fontWeight: 'bold', color: '#333'
+            });
+
+            // Dimensions
+            board1.create('text', [(a + b)/2, -0.5, `a + b = ${a + b}`], {
+                fontSize: 14, color: '#666'
+            });
+            board1.create('text', [-0.7, (a + b)/2, `a + b = ${a + b}`], {
+                fontSize: 14, color: '#666', rotate: 90
+            });
+            
+            board1.unsuspendUpdate();
+        }
+
+        // Visualisation de (a-b)²
+        function drawIdentity2() {
+            board2.suspendUpdate();
+            JXG.JSXGraph.freeBoard(board2);
+            board2 = JXG.JSXGraph.initBoard('board2', {
+                boundingbox: [-1, 8, 8, -1],
+                axis: false,
+                grid: false,
+                showCopyright: false,
+                showNavigation: false
+            });
+            
+            const diff = a - b;
+            
+            // Carré principal (a-b)²
+            board2.create('polygon', [
+                [0, 0], [diff, 0], [diff, diff], [0, diff]
+            ], {
+                fillColor: 'rgba(102, 126, 234, 0.3)',
+                strokeColor: '#333',
+                strokeWidth: 2
+            });
+
+            // Carré a²
+            board2.create('polygon', [
+                [0, 0], [a, 0], [a, a], [0, a]
+            ], {
+                fillColor: 'rgba(255, 99, 132, 0.2)',
+                strokeColor: '#999',
+                strokeWidth: 1,
+                strokeDashArray: [5, 5]
+            });
+
+            // Rectangle ab à soustraire (droite)
+            board2.create('polygon', [
+                [diff, 0], [a, 0], [a, a], [diff, a]
+            ], {
+                fillColor: 'rgba(255, 0, 0, 0.3)',
+                strokeColor: '#f00',
+                strokeWidth: 1
+            });
+
+            // Rectangle ab à soustraire (haut)
+            board2.create('polygon', [
+                [0, diff], [diff, diff], [diff, a], [0, a]
+            ], {
+                fillColor: 'rgba(255, 0, 0, 0.3)',
+                strokeColor: '#f00',
+                strokeWidth: 1
+            });
+
+            // Carré b² à ajouter (coin)
+            board2.create('polygon', [
+                [diff, diff], [a, diff], [a, a], [diff, a]
+            ], {
+                fillColor: 'rgba(0, 255, 0, 0.5)',
+                strokeColor: '#0a0',
+                strokeWidth: 2
+            });
+
+            // Labels
+            board2.create('text', [diff/2, diff/2, `(a-b)²`], {
+                fontSize: 16, fontWeight: 'bold', color: '#333'
+            });
+            board2.create('text', [(diff + a)/2, a/2, `-ab`], {
+                fontSize: 14, fontWeight: 'bold', color: '#f00'
+            });
+            board2.create('text', [diff/2, (diff + a)/2, `-ab`], {
+                fontSize: 14, fontWeight: 'bold', color: '#f00'
+            });
+            board2.create('text', [(diff + a)/2, (diff + a)/2, `+b²`], {
+                fontSize: 14, fontWeight: 'bold', color: '#0a0'
+            });
+
+            // Dimensions
+            board2.create('text', [diff/2, -0.5, `a - b = ${diff}`], {
+                fontSize: 14, color: '#666'
+            });
+            board2.create('text', [-0.7, diff/2, `a - b = ${diff}`], {
+                fontSize: 14, color: '#666', rotate: 90
+            });
+            
+            board2.unsuspendUpdate();
+        }
+
+        // Visualisation de (a+b)(a-b)
+        function drawIdentity3() {
+            board3.suspendUpdate();
+            JXG.JSXGraph.freeBoard(board3);
+            board3 = JXG.JSXGraph.initBoard('board3', {
+                boundingbox: [-1, 8, 8, -1],
+                axis: false,
+                grid: false,
+                showCopyright: false,
+                showNavigation: false
+            });
+            
+            const sum = a + b;
+            const diff = a - b;
+            
+            // Rectangle principal (a+b)(a-b)
+            board3.create('polygon', [
+                [0, 0], [sum, 0], [sum, diff], [0, diff]
+            ], {
+                fillColor: 'rgba(102, 126, 234, 0.3)',
+                strokeColor: '#333',
+                strokeWidth: 2
+            });
+
+            // Carré a²
+            board3.create('polygon', [
+                [0, 0], [a, 0], [a, diff], [0, diff]
+            ], {
+                fillColor: 'rgba(255, 99, 132, 0.6)',
+                strokeColor: '#333',
+                strokeWidth: 1
+            });
+
+            // Rectangle ab
+            board3.create('polygon', [
+                [a, 0], [sum, 0], [sum, diff], [a, diff]
+            ], {
+                fillColor: 'rgba(54, 162, 235, 0.6)',
+                strokeColor: '#333',
+                strokeWidth: 1
+            });
+
+            // Rectangle -ab (partie supérieure pour montrer la soustraction)
+            board3.create('polygon', [
+                [a, diff], [sum, diff], [sum, b + diff], [a, b + diff]
+            ], {
+                fillColor: 'rgba(255, 0, 0, 0.3)',
+                strokeColor: '#f00',
+                strokeWidth: 1,
+                strokeDashArray: [3, 3]
+            });
+
+            // Rectangle -b² (coin supérieur droit)
+            board3.create('polygon', [
+                [a, diff], [a + b, diff], [a + b, b + diff], [a, b + diff]
+            ], {
+                fillColor: 'rgba(255, 0, 0, 0.5)',
+                strokeColor: '#f00',
+                strokeWidth: 2,
+                strokeDashArray: [3, 3]
+            });
+
+            // Labels
+            board3.create('text', [a/2, diff/2, 'a²'], {
+                fontSize: 16, fontWeight: 'bold', color: '#333'
+            });
+            board3.create('text', [(a + sum)/2, diff/2, 'ab'], {
+                fontSize: 16, fontWeight: 'bold', color: '#333'
+            });
+            board3.create('text', [(a + sum)/2, diff + b/2, '-ab'], {
+                fontSize: 14, fontWeight: 'bold', color: '#f00'
+            });
+            board3.create('text', [(a + a + b)/2, diff + b/2, '-b²'], {
+                fontSize: 14, fontWeight: 'bold', color: '#f00'
+            });
+
+            // Dimensions
+            board3.create('text', [sum/2, -0.5, `a + b = ${sum}`], {
+                fontSize: 14, color: '#666'
+            });
+            board3.create('text', [-0.7, diff/2, `a - b = ${diff}`], {
+                fontSize: 14, color: '#666', rotate: 90
+            });
+            
+            board3.unsuspendUpdate();
+        }
+
+        // Mise à jour des formules et calculs
+        function updateFormulasAndCalculations() {
+            // Formule 1: (a+b)²
+            document.getElementById('formula1').innerHTML = 
+                `(${a} + ${b})² = ${a}² + 2×${a}×${b} + ${b}²`;
+            
+            const result1 = (a + b) * (a + b);
+            const expanded1 = a*a + 2*a*b + b*b;
+            document.getElementById('calc1').innerHTML = 
+                `${result1} = ${a*a} + ${2*a*b} + ${b*b} = ${expanded1} ✓`;
+
+            // Formule 2: (a-b)²
+            document.getElementById('formula2').innerHTML = 
+                `(${a} - ${b})² = ${a}² - 2×${a}×${b} + ${b}²`;
+            
+            const result2 = (a - b) * (a - b);
+            const expanded2 = a*a - 2*a*b + b*b;
+            document.getElementById('calc2').innerHTML = 
+                `${result2} = ${a*a} - ${2*a*b} + ${b*b} = ${expanded2} ✓`;
+
+            // Formule 3: (a+b)(a-b)
+            document.getElementById('formula3').innerHTML = 
+                `(${a} + ${b})(${a} - ${b}) = ${a}² - ${b}²`;
+            
+            const result3 = (a + b) * (a - b);
+            const expanded3 = a*a - b*b;
+            document.getElementById('calc3').innerHTML = 
+                `${result3} = ${a*a} - ${b*b} = ${expanded3} ✓`;
+        }
+
+        // Mise à jour de tout
+        function updateAll() {
+            drawIdentity1();
+            drawIdentity2();
+            drawIdentity3();
+            updateFormulasAndCalculations();
+        }
+
+        // Event listeners
+        document.getElementById('aValue').addEventListener('input', function() {
+            a = parseFloat(this.value);
+            updateAll();
+        });
+
+        document.getElementById('bValue').addEventListener('input', function() {
+            b = parseFloat(this.value);
+            updateAll();
+        });
+
+        // Initialisation
+        window.addEventListener('load', initBoards);
+        window.addEventListener('resize', function() {
+            setTimeout(updateAll, 100);
+        });
+    </script>
+</body>
+</html>

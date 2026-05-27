@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frise chronologique - Les Lumières et la littérature française du XVIIIe siècle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #f5f3f0 0%, #e8e5e0 100%);
+            color: #2c3e50;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .timeline-container {
+            position: relative;
+            padding: 50px 20px;
+            min-height: 600px;
+            overflow-x: auto;
+        }
+
+        .timeline {
+            position: relative;
+            width: 100%;
+            min-width: 1200px;
+            height: 400px;
+            margin: 0 auto;
+        }
+
+        .timeline-line {
+            position: absolute;
+            top: 200px;
+            left: 50px;
+            right: 50px;
+            height: 4px;
+            background: linear-gradient(90deg, #d4af37 0%, #f1c40f 50%, #d4af37 100%);
+            border-radius: 2px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .year-markers {
+            position: absolute;
+            top: 190px;
+            left: 50px;
+            right: 50px;
+            height: 20px;
+        }
+
+        .year-marker {
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: #2c3e50;
+            transform: translateX(-1px);
+        }
+
+        .year-label {
+            position: absolute;
+            top: 25px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #2c3e50;
+            transform: translateX(-50%);
+        }
+
+        .event {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            transform: translate(-10px, -10px);
+            transition: all 0.3s ease;
+            border: 3px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .event.litterature {
+            background: #e74c3c;
+        }
+
+        .event.philosophie {
+            background: #3498db;
+        }
+
+        .event.histoire {
+            background: #2ecc71;
+        }
+
+        .event.theatre {
+            background: #9b59b6;
+        }
+
+        .event:hover {
+            transform: translate(-10px, -10px) scale(1.3);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.3);
+        }
+
+        .event-tooltip {
+            position: absolute;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            max-width: 350px;
+            z-index: 1000;
+            border-left: 5px solid;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            transform: translateY(-10px);
+        }
+
+        .event-tooltip.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .event-tooltip.litterature {
+            border-left-color: #e74c3c;
+        }
+
+        .event-tooltip.philosophie {
+            border-left-color: #3498db;
+        }
+
+        .event-tooltip.histoire {
+            border-left-color: #2ecc71;
+        }
+
+        .event-tooltip.theatre {
+            border-left-color: #9b59b6;
+        }
+
+        .tooltip-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .tooltip-year {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .tooltip-description {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #34495e;
+        }
+
+        .tooltip-author {
+            font-style: italic;
+            color: #7f8c8d;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .legend-item:hover {
+            transform: translateY(-3px);
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn.active {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .info-panel {
+            background: white;
+            margin: 30px auto;
+            max-width: 800px;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            border-left: 5px solid #f39c12;
+        }
+
+        .info-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .info-content {
+            color: #34495e;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .legend {
+                gap: 15px;
+            }
+            
+            .timeline {
+                min-width: 800px;
+            }
+            
+            .event-tooltip {
+                max-width: 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Les Lumières et la Littérature Française</h1>
+        <p>XVIIIe siècle - L'âge de la Raison et de la Philosophie</p>
+    </div>
+
+    <div class="controls">
+        <button class="btn active" onclick="showAllEvents()">Tous les événements</button>
+        <button class="btn" onclick="filterEvents('litterature')">Littérature</button>
+        <button class="btn" onclick="filterEvents('philosophie')">Philosophie</button>
+        <button class="btn" onclick="filterEvents('theatre')">Théâtre</button>
+        <button class="btn" onclick="filterEvents('histoire')">Histoire</button>
+    </div>
+
+    <div class="timeline-container">
+        <div class="timeline">
+            <div class="timeline-line"></div>
+            <div class="year-markers" id="yearMarkers"></div>
+            <div id="events"></div>
+        </div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background: #e74c3c;"></div>
+            <span>Littérature</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #3498db;"></div>
+            <span>Philosophie</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #9b59b6;"></div>
+            <span>Théâtre</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #2ecc71;"></div>
+            <span>Histoire</span>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div class="info-title">Le Siècle des Lumières (1715-1789)</div>
+        <div class="info-content">
+            Le XVIIIe siècle français, appelé "Siècle des Lumières", est une période d'effervescence intellectuelle et culturelle. 
+            Les philosophes comme Voltaire, Diderot et Rousseau révolutionnent la pensée européenne en prônant la raison, 
+            la tolérance et le progrès. Cette frise interactive vous permet d'explorer les œuvres majeures et les événements 
+            marquants qui ont façonné cette époque fondamentale de l'histoire littéraire française.
+        </div>
+    </div>
+
+    <div class="event-tooltip" id="tooltip"></div>
+
+    <script>
+        const startYear = 1700;
+        const endYear = 1800;
+        const timelineWidth = 1100; // Largeur effective de la timeline
+
+        const events = [
+            {
+                year: 1715,
+                title: "Mort de Louis XIV",
+                description: "Fin du règne du Roi-Soleil, début de la Régence. Cette transition marque l'ouverture vers de nouvelles idées et une certaine liberté d'expression.",
+                category: "histoire",
+                author: ""
+            },
+            {
+                year: 1721,
+                title: "Lettres persanes",
+                description: "Montesquieu critique la société française à travers le regard de deux Persans. Œuvre fondatrice de l'esprit critique des Lumières.",
+                category: "litterature",
+                author: "Montesquieu"
+            },
+            {
+                year: 1734,
+                title: "Lettres philosophiques",
+                description: "Voltaire fait l'éloge du système politique et philosophique anglais, critique indirecte de la France. Œuvre censurée qui lance le combat des Lumières.",
+                category: "philosophie",
+                author: "Voltaire"
+            },
+            {
+                year: 1748,
+                title: "De l'Esprit des lois",
+                description: "Montesquieu théorise la séparation des pouvoirs et influence profondément la pensée politique moderne.",
+                category: "philosophie",
+                author: "Montesquieu"
+            },
+            {
+                year: 1751,
+                title: "L'Encyclopédie (premier tome)",
+                description: "Diderot et d'Alembert lancent cette entreprise monumentale pour diffuser les connaissances et combattre l'obscurantisme.",
+                category: "philosophie",
+                author: "Diderot et d'Alembert"
+            },
+            {
+                year: 1759,
+                title: "Candide",
+                description: "Chef-d'œuvre de Voltaire, ce conte philosophique critique l'optimisme de Leibniz avec ironie et intelligence.",
+                category: "litterature",
+                author: "Voltaire"
+            },
+            {
+                year: 1761,
+                title: "Julie ou la Nouvelle Héloïse",
+                description: "Roman épistolaire de Rousseau explorant l'amour et la vertu, immense succès de l'époque préromantique.",
+                category: "litterature",
+                author: "Jean-Jacques Rousseau"
+            },
+            {
+                year: 1762,
+                title: "Du Contrat social",
+                description: "Rousseau établit les fondements de la démocratie moderne avec sa célèbre formule : 'L'homme est né libre, et partout il est dans les fers'.",
+                category: "philosophie",
+                author: "Jean-Jacques Rousseau"
+            },
+            {
+                year: 1762,
+                title: "Émile ou De l'éducation",
+                description: "Traité pédagogique révolutionnaire de Rousseau prônant une éducation naturelle respectueuse de l'enfant.",
+                category: "philosophie",
+                author: "Jean-Jacques Rousseau"
+            },
+            {
+                year: 1775,
+                title: "Le Barbier de Séville",
+                description: "Première pièce de la trilogie de Figaro par Beaumarchais, comédie brillante qui critique l'aristocratie avec finesse.",
+                category: "theatre",
+                author: "Beaumarchais"
+            },
+            {
+                year: 1778,
+                title: "Mort de Voltaire et Rousseau",
+                description: "Disparition de deux géants des Lumières la même année, symbole de la fin d'une époque intellectuelle.",
+                category: "histoire",
+                author: ""
+            },
+            {
+                year: 1782,
+                title: "Les Liaisons dangereuses",
+                description: "Chef-d'œuvre de Laclos, roman épistolaire analysant avec cynisme les mœurs de l'aristocratie décadente.",
+                category: "litterature",
+                author: "Choderlos de Laclos"
+            },
+            {
+                year: 1784,
+                title: "Le Mariage de Figaro",
+                description: "Comédie révolutionnaire de Beaumarchais, critique acerbe de l'Ancien Régime qui annonce la Révolution.",
+                category: "theatre",
+                author: "Beaumarchais"
+            },
+            {
+                year: 1788,
+                title: "Paul et Virginie",
+                description: "Roman exotique de Bernardin de Saint-Pierre célébrant la nature et l'innocence, précurseur du romantisme.",
+                category: "litterature",
+                author: "Bernardin de Saint-Pierre"
+            },
+            {
+                year: 1789,
+                title: "Révolution française",
+                description: "Début de la Révolution française, aboutissement des idées des Lumières. Fin de l'Ancien Régime et naissance de la France moderne.",
+                category: "histoire",
+                author: ""
+            }
+        ];
+
+        let currentFilter = 'all';
+        let tooltip = document.getElementById('tooltip');
+
+        function calculatePosition(year) {
+            const percentage = (year - startYear) / (endYear - startYear);
+            return 50 + (percentage * timelineWidth);
+        }
+
+        function createYearMarkers() {
+            const yearMarkers = document.getElementById('yearMarkers');
+            for (let year = 1700; year <= 1800; year += 10) {
+                const marker = document.createElement('div');
+                marker.className = 'year-marker';
+                marker.style.left = calculatePosition(year) + 'px';
+                
+                const label = document.createElement('div');
+                label.className = 'year-label';
+                label.textContent = year;
+                label.style.left = calculatePosition(year) + 'px';
+                
+                yearMarkers.appendChild(marker);
+                yearMarkers.appendChild(label);
+            }
+        }
+
+        function createEvents() {
+            const eventsContainer = document.getElementById('events');
+            
+            events.forEach((event, index) => {
+                const eventElement = document.createElement('div');
+                eventElement.className = `event ${event.category}`;
+                eventElement.style.left = calculatePosition(event.year) + 'px';
+                eventElement.style.top = '190px';
+                eventElement.setAttribute('data-category', event.category);
+                
+                eventElement.addEventListener('mouseenter', (e) => showTooltip(e, event));
+                eventElement.addEventListener('mouseleave', hideTooltip);
+                eventElement.addEventListener('click', (e) => showTooltip(e, event));
+                
+                eventsContainer.appendChild(eventElement);
+            });
+        }
+
+        function showTooltip(e, event) {
+            tooltip.innerHTML = `
+                <div class="tooltip-year">${event.year}</div>
+                <div class="tooltip-title">${event.title}</div>
+                ${event.author ? `<div class="tooltip-author">${event.author}</div>` : ''}
+                <div class="tooltip-description">${event.description}</div>
+            `;
+            
+            tooltip.className = `event-tooltip ${event.category} visible`;
+            
+            const rect = e.target.getBoundingClientRect();
+            const containerRect = document.querySelector('.timeline-container').getBoundingClientRect();
+            
+            let left = rect.left - containerRect.left;
+            let top = rect.top - containerRect.top - tooltip.offsetHeight - 10;
+            
+            // Ajustement si le tooltip dépasse à droite
+            if (left + 350 > containerRect.width) {
+                left = containerRect.width - 350 - 20;
+            }
+            
+            // Ajustement si le tooltip dépasse en haut
+            if (top < 0) {
+                top = rect.bottom - containerRect.top + 10;
+            }
+            
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+        }
+
+        function hideTooltip() {
+            tooltip.classList.remove('visible');
+        }
+
+        function filterEvents(category) {
+            currentFilter = category;
+            const allEvents = document.querySelectorAll('.event');
+            
+            allEvents.forEach(event => {
+                if (category === 'all' || event.getAttribute('data-category') === category) {
+                    event.style.display = 'block';
+                } else {
+                    event.style.display = 'none';
+                }
+            });
+            
+            // Mettre à jour les boutons
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function showAllEvents() {
+            filterEvents('all');
+            document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.btn').classList.add('active');
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            createYearMarkers();
+            createEvents();
+        });
+
+        // Fermer le tooltip en cliquant ailleurs
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.event') && !e.target.closest('.event-tooltip')) {
+                hideTooltip();
+            }
+        });
+    </script>
+</body>
+</html>

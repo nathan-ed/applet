@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identité Remarquable (a+b)²</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsxgraph@1.7.0/distrib/jsxgraphcore.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/jsxgraph@1.7.0/distrib/jsxgraph.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .slider-group label {
+            font-weight: 600;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        .slider-group input[type="range"] {
+            width: 120px;
+            height: 6px;
+            background: #ddd;
+            outline: none;
+            border-radius: 3px;
+        }
+
+        .slider-group input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #007bff;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .value-display {
+            font-size: 1.1em;
+            color: #007bff;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .board-container {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            background: white;
+        }
+
+        .formula-display {
+            text-align: center;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        .formula {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 8px;
+            font-family: 'Times New Roman', serif;
+        }
+
+        .calculation {
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #333;
+        }
+
+        @media (max-width: 600px) {
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .board-container {
+                height: 400px;
+            }
+            
+            .legend {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Identité Remarquable: (a + b)²</h1>
+        
+        <div class="controls">
+            <div class="slider-group">
+                <label for="aSlider">a =</label>
+                <input type="range" id="aSlider" min="1" max="5" value="3" step="0.5">
+                <div class="value-display" id="aValue">3</div>
+            </div>
+            <div class="slider-group">
+                <label for="bSlider">b =</label>
+                <input type="range" id="bSlider" min="1" max="5" value="2" step="0.5">
+                <div class="value-display" id="bValue">2</div>
+            </div>
+        </div>
+
+        <div class="board-container">
+            <div id="board" class="jxgbox" style="width: 100%; height: 100%;"></div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: rgba(255, 99, 132, 0.6);"></div>
+                <span>a² = Carré de côté a</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: rgba(54, 162, 235, 0.6);"></div>
+                <span>ab = Rectangles</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: rgba(255, 206, 84, 0.6);"></div>
+                <span>b² = Carré de côté b</span>
+            </div>
+        </div>
+
+        <div class="formula-display">
+            <div class="formula" id="formula">(a + b)² = a² + 2ab + b²</div>
+            <div class="calculation" id="calculation">Calcul: (3 + 2)² = 3² + 2×3×2 + 2² = 9 + 12 + 4 = 25</div>
+        </div>
+    </div>
+
+    <script>
+        let board;
+        let a = 3, b = 2;
+
+        // Initialisation du board
+        function initBoard() {
+            const boardOptions = {
+                boundingbox: [-1, 7, 7, -1],
+                axis: false,
+                grid: false,
+                showCopyright: false,
+                showNavigation: false,
+                pan: {enabled: false},
+                zoom: {enabled: false}
+            };
+
+            board = JXG.JSXGraph.initBoard('board', boardOptions);
+            updateVisualization();
+        }
+
+        // Mise à jour de la visualisation
+        function updateVisualization() {
+            // Nettoyer le board
+            board.suspendUpdate();
+            JXG.JSXGraph.freeBoard(board);
+            board = JXG.JSXGraph.initBoard('board', {
+                boundingbox: [-1, 7, 7, -1],
+                axis: false,
+                grid: false,
+                showCopyright: false,
+                showNavigation: false,
+                pan: {enabled: false},
+                zoom: {enabled: false}
+            });
+
+            const total = a + b;
+            
+            // Carré principal avec contour
+            board.create('polygon', [
+                [0, 0], [total, 0], [total, total], [0, total]
+            ], {
+                fillColor: 'transparent',
+                strokeColor: '#000',
+                strokeWidth: 3
+            });
+
+            // Rectangle a² (en haut à gauche)
+            board.create('polygon', [
+                [0, b], [a, b], [a, total], [0, total]
+            ], {
+                fillColor: 'rgba(255, 99, 132, 0.6)',
+                strokeColor: '#333',
+                strokeWidth: 1
+            });
+
+            // Rectangle ab (en haut à droite)
+            board.create('polygon', [
+                [a, b], [total, b], [total, total], [a, total]
+            ], {
+                fillColor: 'rgba(54, 162, 235, 0.6)',
+                strokeColor: '#333',
+                strokeWidth: 1
+            });
+
+            // Rectangle ab (en bas à gauche)
+            board.create('polygon', [
+                [0, 0], [a, 0], [a, b], [0, b]
+            ], {
+                fillColor: 'rgba(54, 162, 235, 0.6)',
+                strokeColor: '#333',
+                strokeWidth: 1
+            });
+
+            // Rectangle b² (en bas à droite)
+            board.create('polygon', [
+                [a, 0], [total, 0], [total, b], [a, b]
+            ], {
+                fillColor: 'rgba(255, 206, 84, 0.6)',
+                strokeColor: '#333',
+                strokeWidth: 1
+            });
+
+            // Labels pour les zones
+            board.create('text', [a/2, (total + b)/2, 'a²'], {
+                fontSize: 18, 
+                fontWeight: 'bold', 
+                color: '#000',
+                anchorX: 'middle',
+                anchorY: 'middle'
+            });
+
+            board.create('text', [(a + total)/2, (total + b)/2, 'ab'], {
+                fontSize: 18, 
+                fontWeight: 'bold', 
+                color: '#000',
+                anchorX: 'middle',
+                anchorY: 'middle'
+            });
+
+            board.create('text', [a/2, b/2, 'ab'], {
+                fontSize: 18, 
+                fontWeight: 'bold', 
+                color: '#000',
+                anchorX: 'middle',
+                anchorY: 'middle'
+            });
+
+            board.create('text', [(a + total)/2, b/2, 'b²'], {
+                fontSize: 18, 
+                fontWeight: 'bold', 
+                color: '#000',
+                anchorX: 'middle',
+                anchorY: 'middle'
+            });
+
+            // Dimensions extérieures
+            // Dimension horizontale du bas
+            board.create('segment', [[0, -0.3], [total, -0.3]], {
+                strokeColor: '#666',
+                strokeWidth: 1
+            });
+            board.create('text', [total/2, -0.5, `a + b = ${total}`], {
+                fontSize: 14,
+                color: '#666',
+                anchorX: 'middle',
+                anchorY: 'middle'
+            });
+
+            // Dimension verticale à gauche
+            board.create('segment', [[-0.3, 0], [-0.3, total]], {
+                strokeColor: '#666',
+                strokeWidth: 1
+            });
+            board.create('text', [-0.5, total/2, `a + b = ${total}`], {
+                fontSize: 14,
+                color: '#666',
+                anchorX: 'middle',
+                anchorY: 'middle',
+                rotate: 90
+            });
+
+            // Lignes de séparation intérieures
+            board.create('segment', [[a, 0], [a, total]], {
+                strokeColor: '#333',
+                strokeWidth: 2,
+                strokeDashArray: [5, 5]
+            });
+            board.create('segment', [[0, b], [total, b]], {
+                strokeColor: '#333',
+                strokeWidth: 2,
+                strokeDashArray: [5, 5]
+            });
+
+            // Dimensions des côtés
+            board.create('text', [a/2, -0.15, 'a'], {
+                fontSize: 14,
+                color: '#666',
+                fontWeight: 'bold'
+            });
+            board.create('text', [(a + total)/2, -0.15, 'b'], {
+                fontSize: 14,
+                color: '#666',
+                fontWeight: 'bold'
+            });
+            board.create('text', [-0.15, b/2, 'b'], {
+                fontSize: 14,
+                color: '#666',
+                fontWeight: 'bold'
+            });
+            board.create('text', [-0.15, (b + total)/2, 'a'], {
+                fontSize: 14,
+                color: '#666',
+                fontWeight: 'bold'
+            });
+
+            board.unsuspendUpdate();
+            updateFormula();
+        }
+
+        // Mise à jour des formules
+        function updateFormula() {
+            const total = a + b;
+            const result = total * total;
+            const expanded = a*a + 2*a*b + b*b;
+            
+            document.getElementById('formula').textContent = 
+                `(${a} + ${b})² = ${a}² + 2×${a}×${b} + ${b}²`;
+            
+            document.getElementById('calculation').textContent = 
+                `Calcul: (${a} + ${b})² = ${a*a} + ${2*a*b} + ${b*b} = ${expanded}`;
+        }
+
+        // Event listeners pour les sliders
+        document.getElementById('aSlider').addEventListener('input', function() {
+            a = parseFloat(this.value);
+            document.getElementById('aValue').textContent = a;
+            updateVisualization();
+        });
+
+        document.getElementById('bSlider').addEventListener('input', function() {
+            b = parseFloat(this.value);
+            document.getElementById('bValue').textContent = b;
+            updateVisualization();
+        });
+
+        // Initialisation
+        window.addEventListener('load', initBoard);
+    </script>
+</body>
+</html>

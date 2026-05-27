@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introduction géométrique à la notion de limite</title>
+    <script src="https://jsxgraph.uni-bayreuth.de/distrib/jsxgraphcore.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://jsxgraph.uni-bayreuth.de/distrib/jsxgraph.css" />
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        #jxgbox {
+            width: 800px;
+            height: 600px;
+            margin: 20px auto;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        .problem-statement {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #e8f4fd;
+            border-left: 4px solid #2196F3;
+            border-radius: 4px;
+        }
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .slider-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .slider-container input {
+            width: 400px;
+            margin: 10px;
+        }
+        .preset-buttons {
+            margin: 15px 0;
+        }
+        .preset-btn {
+            padding: 8px 16px;
+            margin: 3px;
+            border: 2px solid #2196F3;
+            border-radius: 4px;
+            background-color: white;
+            color: #2196F3;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .preset-btn:hover, .preset-btn.active {
+            background-color: #2196F3;
+            color: white;
+        }
+        .measurements {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            gap: 20px;
+        }
+        .measurement-item {
+            padding: 10px 15px;
+            background-color: #e8f5e8;
+            border-radius: 15px;
+            font-weight: bold;
+            min-width: 120px;
+            text-align: center;
+        }
+        .area-display {
+            font-size: 18px;
+            color: #d32f2f;
+            font-weight: bold;
+        }
+        .questions {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 4px;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            gap: 15px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            background-color: #f8f9fa;
+            border-radius: 15px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Introduction géométrique à la notion de limite</h1>
+        
+        <div class="problem-statement">
+            <p><strong>Énoncé :</strong> Soit le carré $ABCD$ de côté $10$ cm. On note $P$ et $Q$ les milieux des côtés $BC$ et $CD$. 
+            Soient $M$ un point de $AD$ et $N$ un point de $AB$ tels que $\overline{AN} = \overline{AM} = x$.</p>
+        </div>
+
+        <div id="jxgbox"></div>
+
+        <div class="controls">
+            <div class="slider-container">
+                <label><strong>Valeur de $x$ (en cm) :</strong></label><br>
+                <input type="range" id="xSlider" min="0" max="10" step="0.1" value="3">
+                <span id="xValue">3.0</span> cm
+            </div>
+            
+            <div class="preset-buttons">
+                <strong>Valeurs à tester :</strong><br>
+                <button class="preset-btn" onclick="setX(6)">$x = 6$ cm</button>
+                <button class="preset-btn" onclick="setX(4)">$x = 4$ cm</button>
+                <button class="preset-btn" onclick="setX(1)">$x = 1$ cm</button>
+                <button class="preset-btn" onclick="setX(0.5)">$x = 0.5$ cm</button>
+                <button class="preset-btn" onclick="setX(0.1)">$x = 0.1$ cm</button>
+                <button class="preset-btn" onclick="setX(0.01)">$x = 0.01$ cm</button>
+            </div>
+        </div>
+
+        <div class="measurements">
+            <div class="measurement-item">
+                $x = $ <span id="xDisplay">3.0</span> cm
+            </div>
+            <div class="measurement-item">
+                $MN = $ <span id="mnDistance">--</span> cm
+            </div>
+            <div class="measurement-item">
+                $NP = $ <span id="npDistance">--</span> cm
+            </div>
+            <div class="measurement-item">
+                $PQ = $ <span id="pqDistance">--</span> cm
+            </div>
+            <div class="measurement-item">
+                $QM = $ <span id="qmDistance">--</span> cm
+            </div>
+            <div class="measurement-item area-display">
+                $A(x) = $ <span id="areaValue">--</span> cm²
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #2196F3;"></div>
+                <span>Carré ABCD</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #FF5722;"></div>
+                <span>Quadrilatère MNPQ</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #4CAF50; height: 8px; width: 8px; border-radius: 50%;"></div>
+                <span>Points variables (M, N)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #9C27B0; height: 8px; width: 8px; border-radius: 50%;"></div>
+                <span>Points fixes (P, Q)</span>
+            </div>
+        </div>
+
+        <div class="questions">
+            <strong>Questions à explorer :</strong>
+            <ol>
+                <li><strong>Nature du quadrilatère :</strong> Observez les côtés de MNPQ. Que remarquez-vous ?</li>
+                <li><strong>Évolution quand $x \to 0$ :</strong> Que devient le quadrilatère MNPQ quand $x$ se rapproche de 0 ?</li>
+                <li><strong>Aire $A(x)$ :</strong> Comment évolue l'aire quand $x$ diminue ? Vers quelle valeur tend-elle ?</li>
+                <li><strong>Formule théorique :</strong> $A(x) = \frac{1}{2}(MN^2 + NP^2 + PQ^2 + QM^2) - 50$</li>
+                <li><strong>Limite :</strong> Calculez $\lim_{x \to 0} A(x)$ et vérifiez avec l'observation graphique</li>
+            </ol>
+        </div>
+
+        <div class="problem-statement">
+            <strong>Observation :</strong> Quand $x \to 0$, le quadrilatère MNPQ tend vers le segment $PQ$, et son aire tend vers <strong>0</strong>.
+            Ceci illustre la notion de limite géométrique !
+        </div>
+    </div>
+
+    <script>
+        // Initialize JSXGraph board
+        var board = JXG.JSXGraph.initBoard('jxgbox', {
+            boundingbox: [-1, 11, 11, -1],
+            axis: true,
+            showCopyright: false,
+            grid: true,
+            pan: {enabled: false},
+            zoom: {enabled: false}
+        });
+
+        // Square ABCD vertices (10cm side)
+        var A = board.create('point', [0, 0], {
+            size: 6,
+            color: '#2196F3',
+            name: 'A',
+            fixed: true,
+            label: {offset: [-20, -20]}
+        });
+
+        var B = board.create('point', [10, 0], {
+            size: 6,
+            color: '#2196F3',
+            name: 'B',
+            fixed: true,
+            label: {offset: [10, -20]}
+        });
+
+        var C = board.create('point', [10, 10], {
+            size: 6,
+            color: '#2196F3',
+            name: 'C',
+            fixed: true,
+            label: {offset: [10, 10]}
+        });
+
+        var D = board.create('point', [0, 10], {
+            size: 6,
+            color: '#2196F3',
+            name: 'D',
+            fixed: true,
+            label: {offset: [-20, 10]}
+        });
+
+        // Square ABCD
+        var square = board.create('polygon', [A, B, C, D], {
+            borders: {
+                strokeColor: '#2196F3',
+                strokeWidth: 3
+            },
+            fillColor: 'transparent'
+        });
+
+        // Midpoints P and Q
+        var P = board.create('point', [10, 5], {
+            size: 6,
+            color: '#9C27B0',
+            name: 'P',
+            fixed: true,
+            label: {offset: [15, 0]}
+        });
+
+        var Q = board.create('point', [5, 10], {
+            size: 6,
+            color: '#9C27B0',
+            name: 'Q',
+            fixed: true,
+            label: {offset: [0, 15]}
+        });
+
+        // Variable parameter x
+        var x = 3;
+
+        // Variable points M and N
+        var M = board.create('point', [
+            function() { return 0; },
+            function() { return x; }
+        ], {
+            size: 6,
+            color: '#4CAF50',
+            name: 'M',
+            fixed: true,
+            label: {offset: [-25, 0]}
+        });
+
+        var N = board.create('point', [
+            function() { return x; },
+            function() { return 0; }
+        ], {
+            size: 6,
+            color: '#4CAF50',
+            name: 'N',
+            fixed: true,
+            label: {offset: [0, -25]}
+        });
+
+        // Quadrilateral MNPQ
+        var quadrilateral = board.create('polygon', [M, N, P, Q], {
+            borders: {
+                strokeColor: '#FF5722',
+                strokeWidth: 3
+            },
+            fillColor: '#FF5722',
+            fillOpacity: 0.2
+        });
+
+        // Distance calculation functions
+        function distance(p1, p2) {
+            return Math.sqrt(Math.pow(p1.X() - p2.X(), 2) + Math.pow(p1.Y() - p2.Y(), 2));
+        }
+
+        function calculateArea() {
+            // Calculate area of quadrilateral MNPQ using shoelace formula
+            var x1 = M.X(), y1 = M.Y();
+            var x2 = N.X(), y2 = N.Y();
+            var x3 = P.X(), y3 = P.Y();
+            var x4 = Q.X(), y4 = Q.Y();
+            
+            var area = 0.5 * Math.abs(
+                x1*(y2-y4) + x2*(y3-y1) + x3*(y4-y2) + x4*(y1-y3)
+            );
+            
+            return area;
+        }
+
+        function updateMeasurements() {
+            // Update distances
+            var mn = distance(M, N);
+            var np = distance(N, P);
+            var pq = distance(P, Q);
+            var qm = distance(Q, M);
+            var area = calculateArea();
+
+            document.getElementById('xDisplay').textContent = x.toFixed(2);
+            document.getElementById('mnDistance').textContent = mn.toFixed(2);
+            document.getElementById('npDistance').textContent = np.toFixed(2);
+            document.getElementById('pqDistance').textContent = pq.toFixed(2);
+            document.getElementById('qmDistance').textContent = qm.toFixed(2);
+            document.getElementById('areaValue').textContent = area.toFixed(2);
+        }
+
+        function updateVisualization() {
+            // Update point positions
+            M.setPosition(JXG.COORDS_BY_USER, [0, x]);
+            N.setPosition(JXG.COORDS_BY_USER, [x, 0]);
+            
+            updateMeasurements();
+            board.update();
+        }
+
+        function setX(value) {
+            x = value;
+            document.getElementById('xSlider').value = value;
+            document.getElementById('xValue').textContent = value.toFixed(2);
+            
+            // Update active button
+            var buttons = document.querySelectorAll('.preset-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            updateVisualization();
+        }
+
+        // Slider control
+        var slider = document.getElementById('xSlider');
+        slider.addEventListener('input', function() {
+            x = parseFloat(this.value);
+            document.getElementById('xValue').textContent = x.toFixed(1);
+            updateVisualization();
+        });
+
+        // Initial setup
+        updateVisualization();
+
+        // Add axis labels
+        board.create('text', [10.5, 0, 'x'], {fontSize: 16, fontWeight: 'bold'});
+        board.create('text', [0, 10.5, 'y'], {fontSize: 16, fontWeight: 'bold'});
+        
+        // Add grid labels
+        for (let i = 1; i <= 10; i++) {
+            board.create('text', [i, -0.3, i.toString()], {fontSize: 12});
+            board.create('text', [-0.3, i, i.toString()], {fontSize: 12});
+        }
+    </script>
+</body>
+</html>

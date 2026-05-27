@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fonctions Trigonométriques</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsxgraph@1.9.2/distrib/jsxgraph.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsxgraph@1.9.2/distrib/jsxgraphcore.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --clr-A:   #16a34a;
+      --clr-T:   #7c3aed;
+      --clr-phi: #ea580c;
+      --clr-d:   #0891b2;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+      background: #e8eaee;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      /* mobile-first: tight padding */
+      padding: 10px;
+    }
+
+    /* Progressively more breathing room on larger screens */
+    @media (min-width: 700px)  { body { padding: 16px 32px; } }
+    @media (min-width: 1000px) { body { padding: 22px 64px; } }
+    @media (min-width: 1300px) { body { padding: 28px 110px; } }
+    @media (min-width: 1600px) { body { padding: 32px 160px; } }
+
+    .card {
+      background: white;
+      border-radius: 22px;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.12);
+      padding: 20px 24px 18px;
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      margin-bottom: 12px;
+    }
+    h1 { font-size: 1.15em; font-weight: 700; color: #111; letter-spacing: -0.3px; }
+
+    .pill { background: #ececee; border-radius: 11px; padding: 3px; display: flex; }
+    .pill button {
+      border: none; background: transparent;
+      padding: 5px 14px; border-radius: 8px;
+      font-size: 0.82em; font-weight: 600; color: #666;
+      cursor: pointer; transition: all 0.18s;
+    }
+    .pill button.active {
+      background: white; color: #111;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.13);
+    }
+
+    /* ── Graph ── */
+    /* Wrapper owns the flex sizing — prevents JSXGraph inline-style conflict */
+    #board-wrap {
+      flex: 1 1 0;
+      min-height: 160px;
+      position: relative;       /* jxgbox is absolute inside */
+      border-radius: 14px;
+      border: 1.5px solid #e2e2e5;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    #jxgbox {
+      position: absolute;
+      inset: 0;                 /* fills wrapper regardless of JSXGraph inline styles */
+    }
+
+    /* ── Bottom controls ── */
+    .controls { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
+
+    /* Function bar + annotation toggle */
+    .bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .func-group { display: flex; align-items: center; gap: 10px; }
+    .section-label {
+      font-size: 0.72em; text-transform: uppercase;
+      letter-spacing: 0.08em; color: #bbb; font-weight: 700;
+    }
+    .func-btns { display: flex; gap: 6px; }
+    .func-btns button {
+      padding: 6px 18px; border-radius: 9px;
+      border: 2px solid #e4e4e6; background: white;
+      font-size: 0.9em; font-weight: 700;
+      font-family: 'Georgia', serif; color: #555;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .func-btns button:hover:not(.active) { border-color: #bbb; color: #222; }
+    .func-btns button[data-f="sin"].active { border-color:#2563eb; background:#2563eb; color:white; }
+    .func-btns button[data-f="cos"].active { border-color:#dc2626; background:#dc2626; color:white; }
+    .func-btns button[data-f="tan"].active { border-color:#d97706; background:#d97706; color:white; }
+
+    /* Annotation toggle button */
+    #btnAnn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 9px;
+      border: 2px solid #e4e4e6; background: white;
+      font-size: 0.82em; font-weight: 600; color: #666;
+      cursor: pointer; transition: all 0.17s;
+    }
+    #btnAnn svg { width: 14px; height: 14px; flex-shrink: 0; }
+    #btnAnn:hover { border-color: #bbb; color: #333; }
+    #btnAnn.active { border-color: #444; background: #f3f3f5; color: #111; }
+
+    /* ── Formula ── */
+    .formula {
+      padding: 9px 16px; background: #f6f7fa;
+      border-radius: 11px; min-height: 36px;
+      font-family: 'Georgia', serif; font-size: 1.05em; color: #222;
+    }
+
+    /* ── Sliders ── */
+    .sliders { display: flex; flex-direction: column; gap: 7px; }
+
+    .slider-row {
+      display: grid;
+      grid-template-columns: 162px 1fr 78px;
+      align-items: center; gap: 12px;
+    }
+    .slider-row label { font-size: 0.85em; font-weight: 600; }
+
+    /* Per-parameter colors (label + val + accent) */
+    .slider-row[data-p="A"]   label,  .slider-row[data-p="A"]   .val { color: var(--clr-A); }
+    .slider-row[data-p="T"]   label,  .slider-row[data-p="T"]   .val { color: var(--clr-T); }
+    .slider-row[data-p="F"]   label,  .slider-row[data-p="F"]   .val { color: var(--clr-T); }
+    .slider-row[data-p="phi"] label,  .slider-row[data-p="phi"] .val { color: var(--clr-phi); }
+    .slider-row[data-p="d"]   label,  .slider-row[data-p="d"]   .val { color: var(--clr-d); }
+
+    .slider-row[data-p="A"]   input { accent-color: var(--clr-A); }
+    .slider-row[data-p="T"]   input { accent-color: var(--clr-T); }
+    .slider-row[data-p="F"]   input { accent-color: var(--clr-T); }
+    .slider-row[data-p="phi"] input { accent-color: var(--clr-phi); }
+    .slider-row[data-p="d"]   input { accent-color: var(--clr-d); }
+
+    input[type="range"] { width: 100%; cursor: pointer; }
+
+    .val {
+      font-size: 0.83em; font-weight: 700; text-align: right;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    @media (max-width: 560px) {
+      .slider-row { grid-template-columns: 110px 1fr 60px; }
+      .card { padding: 12px 12px 12px; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <header>
+    <h1>Fonctions Trigonométriques</h1>
+    <div class="pill">
+      <button id="btnRad" class="active" onclick="setMode('rad')">Radians</button>
+      <button id="btnSec" onclick="setMode('sec')">Secondes</button>
+    </div>
+  </header>
+
+  <div id="board-wrap">
+    <div id="jxgbox" class="jxgbox"></div>
+  </div>
+
+  <div class="controls">
+    <div class="bar">
+      <div class="func-group">
+        <span class="section-label">Fonction</span>
+        <div class="func-btns">
+          <button data-f="sin" class="active" onclick="setFunc('sin')">sin</button>
+          <button data-f="cos" onclick="setFunc('cos')">cos</button>
+          <button data-f="tan" onclick="setFunc('tan')">tan</button>
+        </div>
+      </div>
+      <button id="btnAnn" onclick="toggleAnnotations()">
+        <!-- eye icon -->
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <path d="M1 8C3 4.5 5 3 8 3s5 1.5 7 5c-2 3.5-4 5-7 5S3 11.5 1 8z"/>
+          <circle cx="8" cy="8" r="2"/>
+        </svg>
+        Afficher sur le graphique
+      </button>
+    </div>
+
+    <div class="formula" id="formula"></div>
+
+    <div class="sliders">
+      <div class="slider-row" data-p="A">
+        <label>Amplitude <i>A</i></label>
+        <input type="range" id="slA" min="0.1" max="3" step="0.05" value="1" oninput="update()">
+        <span class="val" id="valA">1</span>
+      </div>
+      <div class="slider-row" id="rowT" data-p="T">
+        <label>Période <i>T</i></label>
+        <input type="range" id="slT" min="0.5" max="4" step="0.25" value="2" oninput="update()">
+        <span class="val" id="valT">2π</span>
+      </div>
+      <div class="slider-row" id="rowF" data-p="F" style="display:none">
+        <label>Fréquence <i>f</i> (Hz)</label>
+        <input type="range" id="slF" min="1" max="10" step="1" value="1" oninput="update()">
+        <span class="val" id="valF">1 Hz</span>
+      </div>
+      <div class="slider-row" data-p="phi">
+        <label>Déphasage <i>φ</i></label>
+        <input type="range" id="slPhi" min="-3.14159" max="3.14159" step="0.13090" value="0" oninput="update()">
+        <span class="val" id="valPhi">0</span>
+      </div>
+      <div class="slider-row" data-p="d">
+        <label>Axe d'oscillation <i>d</i></label>
+        <input type="range" id="slD" min="-2.5" max="2.5" step="0.1" value="0" oninput="update()">
+        <span class="val" id="valD">0</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+  const COLORS  = { sin: '#2563eb', cos: '#dc2626', tan: '#d97706' };
+  const BB_RAD  = [-7.2, 3.6, 7.2, -3.6];
+  const BB_SEC  = [-0.05, 3.6, 2.1, -3.6];
+
+  let currentFunc = 'sin';
+  let currentMode = 'rad';
+  let annVisible  = false;
+
+  // ── Board ──────────────────────────────────────────────────────────
+  const board = JXG.JSXGraph.initBoard('jxgbox', {
+    boundingbox: BB_RAD, axis: true, grid: true,
+    showCopyright: false, showNavigation: false,
+    pan: { enabled: false }, zoom: { enabled: false },
+    keepAspectRatio: false,
+  });
+
+  if (board.grids?.[0])
+    board.grids[0].setAttribute({ strokeColor: '#e0e0e3', strokeOpacity: 1 });
+
+  // Main curve
+  const curve = board.create('functiongraph', [x => computeY(x)], {
+    strokeColor: COLORS.sin, strokeWidth: 2.8,
+    doAdvancedPlot: true, numberOfPoints: 700,
+  });
+
+  // ── Helpers ────────────────────────────────────────────────────────
+  function getParams() {
+    return {
+      A:    parseFloat(document.getElementById('slA').value),
+      Tmul: parseFloat(document.getElementById('slT').value),   // T = Tmul·π
+      F:    parseInt(document.getElementById('slF').value),
+      phi:  parseFloat(document.getElementById('slPhi').value),
+      d:    parseFloat(document.getElementById('slD').value),
+    };
+  }
+
+  function getOmegaT() {
+    const { Tmul, F } = getParams();
+    const omega = currentMode === 'rad' ? 2 / Tmul : 2 * Math.PI * F;
+    const T     = currentMode === 'rad' ? Tmul * Math.PI : 1 / F;
+    return { omega, T };
+  }
+
+  function computeY(x) {
+    const { A, phi, d } = getParams();
+    const { omega }     = getOmegaT();
+    const arg = omega * x + phi;
+    if (currentFunc === 'sin') return d + A * Math.sin(arg);
+    if (currentFunc === 'cos') return d + A * Math.cos(arg);
+    const v = Math.tan(arg);
+    return Math.abs(v) > 15 ? NaN : d + A * v;
+  }
+
+  // ── Annotations ────────────────────────────────────────────────────
+  // Invisible dynamic anchor point
+  function dp(xFn, yFn) {
+    return board.create('point', [xFn, yFn], {
+      visible: false, fixed: true, withLabel: false,
+    });
+  }
+
+  // 1. Axe d'oscillation — dashed cyan horizontal line
+  const dLine = board.create('functiongraph', [() => getParams().d], {
+    visible: false, strokeColor: '#0891b2',
+    strokeWidth: 1.8, dash: 3, strokeOpacity: 0.75,
+  });
+
+  // 2. Amplitude bracket — double-headed vertical arrow
+  //    Placed at left edge in rad mode, right edge in sec mode
+  function ampX() { return currentMode === 'rad' ? -6.75 : 1.92; }
+
+  const pAmid = dp(() => ampX(), () => getParams().d);
+  const pATop = dp(() => ampX(), () => { const { A, d } = getParams(); return d + A; });
+  const pABot = dp(() => ampX(), () => { const { A, d } = getParams(); return d - A; });
+
+  const ampArrow = board.create('segment', [pATop, pABot], {
+    visible: false, fixed: true,
+    strokeColor: '#16a34a', strokeWidth: 2.2,
+    firstArrow: { type: 2, size: 5 },
+    lastArrow:  { type: 2, size: 5 },
+  });
+
+  // Small tick marks at d+A and d−A
+  function tick(pFn, side = 1) {
+    const dx = side * 0.18;
+    const pL = dp(() => ampX() - dx, () => pFn());
+    const pR = dp(() => ampX() + dx, () => pFn());
+    return board.create('segment', [pL, pR], {
+      visible: false, fixed: true,
+      strokeColor: '#16a34a', strokeWidth: 2,
+    });
+  }
+  const tickTop = tick(() => { const { A, d } = getParams(); return d + A; });
+  const tickBot = tick(() => { const { A, d } = getParams(); return d - A; });
+  const tickMid = tick(() => getParams().d);
+
+  const ampLabel = board.create('text', [
+    () => ampX() + (currentMode === 'rad' ? 0.22 : -0.22),
+    () => { const { A, d } = getParams(); return d + A / 2; },
+    'A',
+  ], {
+    visible: false, fixed: true,
+    fontSize: 13, fontWeight: 'bold', color: '#16a34a',
+    anchorX: () => currentMode === 'rad' ? 'left' : 'right',
+    anchorY: 'middle',
+  });
+
+  // 3. Period bracket — double-headed horizontal arrow above the curve
+  function periodInfo() {
+    const { A, phi, d } = getParams();
+    const { omega, T }  = getOmegaT();
+    const [left,, right] = currentMode === 'rad' ? BB_RAD : BB_SEC;
+
+    // Ascending zero of the base function: omega·x + phi = 0
+    let x0 = -phi / omega;
+    // Normalize into visible range
+    if (T > 0) {
+      while (x0 < left + 0.1)  x0 += T;
+      while (x0 > right - 0.1) x0 -= T;
+    }
+    if (x0 < left + 0.1) x0 = left + 0.3;
+
+    const x1      = Math.min(x0 + T, right - 0.08);
+    const yPeak   = d + Math.abs(A);
+    const [, top] = currentMode === 'rad' ? BB_RAD : BB_SEC;
+    const yBrack  = Math.min(yPeak + 0.4, top - 0.28);
+
+    return { x0, x1, xMid: (x0 + x1) / 2, yBrack };
+  }
+
+  const pPL = dp(() => periodInfo().x0,   () => periodInfo().yBrack);
+  const pPR = dp(() => periodInfo().x1,   () => periodInfo().yBrack);
+
+  const periodArrow = board.create('segment', [pPL, pPR], {
+    visible: false, fixed: true,
+    strokeColor: '#7c3aed', strokeWidth: 2.2,
+    firstArrow: { type: 2, size: 5 },
+    lastArrow:  { type: 2, size: 5 },
+  });
+
+  // Small vertical drops at each end of the bracket
+  function drop(xFn) {
+    const pTop = dp(xFn, () => periodInfo().yBrack);
+    const pBot = dp(xFn, () => periodInfo().yBrack - 0.18);
+    return board.create('segment', [pTop, pBot], {
+      visible: false, fixed: true,
+      strokeColor: '#7c3aed', strokeWidth: 2,
+    });
+  }
+  const dropL = drop(() => periodInfo().x0);
+  const dropR = drop(() => periodInfo().x1);
+
+  const periodLabel = board.create('text', [
+    () => periodInfo().xMid,
+    () => periodInfo().yBrack + 0.14,
+    () => {
+      const { Tmul, F } = getParams();
+      return currentMode === 'rad'
+        ? `T = ${fmtPiMul(Tmul)}`
+        : `T = ${fmtN(1 / F, 2)} s`;
+    },
+  ], {
+    visible: false, fixed: true,
+    fontSize: 12, fontWeight: 'bold', color: '#7c3aed',
+    anchorX: 'middle', anchorY: 'bottom',
+  });
+
+  // All togglable annotation elements
+  const annElements = [
+    dLine,
+    ampArrow, tickTop, tickBot, tickMid, ampLabel,
+    periodArrow, dropL, dropR, periodLabel,
+  ];
+
+  // ── Formatters ─────────────────────────────────────────────────────
+  function fmtN(n, dec = 2) { return parseFloat(n.toFixed(dec)).toString(); }
+
+  function fmtPiMul(v) {
+    if (v ===  1) return 'π';
+    if (v === -1) return '−π';
+    if (Number.isInteger(v)) return `${v}π`;
+    return `${fmtN(v, 2)}π`;
+  }
+
+  function fmtPhi(phi) {
+    if (Math.abs(phi) < 0.01) return null;
+    const r   = phi / Math.PI;
+    const abs = Math.abs(r);
+    const fracs = [[1,1],[1,2],[1,3],[1,4],[1,6],[2,3],[3,4],[5,6]];
+    for (const [num, den] of fracs) {
+      if (Math.abs(abs - num / den) < 0.01) {
+        const numStr = num === 1 ? '' : num;
+        const denStr = den === 1 ? 'π' : `π/${den}`;
+        return { neg: phi < 0, str: numStr + denStr };
+      }
+    }
+    return { neg: phi < 0, str: fmtN(abs, 2) + 'π' };
+  }
+
+  // ── Formula HTML ───────────────────────────────────────────────────
+  function buildFormula() {
+    const { A, Tmul, F, phi, d } = getParams();
+    const xVar   = currentMode === 'sec' ? 't' : 'x';
+    const fn     = currentFunc;
+    const fnCol  = COLORS[fn];
+
+    const Ahtml = Math.abs(A - 1) < 0.03
+      ? ''
+      : `<b style="color:var(--clr-A)">${fmtN(A)}</b>·`;
+
+    let omegaHtml;
+    if (currentMode === 'rad') {
+      const omega = 2 / Tmul;
+      omegaHtml = Math.abs(omega - 1) < 0.02
+        ? ''
+        : `<b style="color:var(--clr-T)">${fmtN(omega)}</b>·`;
+    } else {
+      omegaHtml = F === 1
+        ? `<b style="color:var(--clr-T)">2π</b>·`
+        : `<b style="color:var(--clr-T)">2π·${F}</b>·`;
+    }
+
+    const phiInfo = fmtPhi(phi);
+    const phiHtml = phiInfo
+      ? ` <b style="color:var(--clr-phi)">${phiInfo.neg ? '−' : '+'}${phiInfo.str}</b>`
+      : '';
+
+    let dHtml = '';
+    if (Math.abs(d) >= 0.05)
+      dHtml = ` <b style="color:var(--clr-d)">${d > 0 ? '+' : '−'} ${fmtN(Math.abs(d), 1)}</b>`;
+
+    return `f(${xVar}) = ${Ahtml}<b style="color:${fnCol}">${fn}</b>(${omegaHtml}${xVar}${phiHtml})${dHtml}`;
+  }
+
+  // ── Update ─────────────────────────────────────────────────────────
+  function updateDisplays() {
+    const { A, Tmul, F, phi, d } = getParams();
+    document.getElementById('valA').textContent   = fmtN(A);
+    document.getElementById('valT').textContent   = fmtPiMul(Tmul);
+    document.getElementById('valF').textContent   = `${F} Hz`;
+    const pi = fmtPhi(phi);
+    document.getElementById('valPhi').textContent = pi ? `${pi.neg ? '−' : ''}${pi.str}` : '0';
+    document.getElementById('valD').textContent   = fmtN(d, 1);
+  }
+
+  function update() {
+    updateDisplays();
+    curve.setAttribute({ strokeColor: COLORS[currentFunc] });
+    document.getElementById('formula').innerHTML = buildFormula();
+    board.update();
+  }
+
+  function setMode(m) {
+    currentMode = m;
+    document.getElementById('btnRad').classList.toggle('active', m === 'rad');
+    document.getElementById('btnSec').classList.toggle('active', m === 'sec');
+    document.getElementById('rowT').style.display = m === 'rad' ? '' : 'none';
+    document.getElementById('rowF').style.display = m === 'sec' ? '' : 'none';
+    board.setBoundingBox(m === 'sec' ? BB_SEC : BB_RAD, true);
+    update();
+  }
+
+  function setFunc(f) {
+    currentFunc = f;
+    document.querySelectorAll('.func-btns button').forEach(b =>
+      b.classList.toggle('active', b.dataset.f === f)
+    );
+    update();
+  }
+
+  function toggleAnnotations() {
+    annVisible = !annVisible;
+    annElements.forEach(el => el.setAttribute({ visible: annVisible }));
+    document.getElementById('btnAnn').classList.toggle('active', annVisible);
+    board.update();
+  }
+
+  // ── Responsive board resize ─────────────────────────────────────────
+  // Observe the wrapper (not jxgbox) — its size is CSS-driven, not polluted by JSXGraph
+  new ResizeObserver(() => {
+    const wrap = document.getElementById('board-wrap');
+    board.resizeContainer(wrap.clientWidth, wrap.clientHeight);
+    board.update();
+  }).observe(document.getElementById('board-wrap'));
+
+  // Init
+  setFunc('sin');
+</script>
+</body>
+</html>

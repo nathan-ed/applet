@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Visualisations</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f7f4;
+      --panel: #ffffff;
+      --text: #202124;
+      --muted: #666b73;
+      --line: #d9ded8;
+      --accent: #246b5a;
+      --accent-dark: #17483d;
+      --ready-bg: #e4f4ec;
+      --ready-text: #14613e;
+      --draft-bg: #fff1d6;
+      --draft-text: #835000;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .wrap {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .top {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 32px 0 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.25rem);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+      max-width: 680px;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .count {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    main {
+      padding: 24px 0 48px;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    button {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 8px 12px;
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    button:hover,
+    button:focus-visible {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    button.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      display: flex;
+      min-height: 190px;
+      flex-direction: column;
+      gap: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 18px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .card:hover,
+    .card:focus-visible {
+      border-color: var(--accent);
+      box-shadow: 0 10px 30px rgba(32, 33, 36, 0.08);
+      transform: translateY(-2px);
+      outline: none;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 0.78rem;
+      font-weight: 750;
+      text-transform: uppercase;
+    }
+
+    .category {
+      background: #e9eef6;
+      color: #244466;
+    }
+
+    .pret {
+      background: var(--ready-bg);
+      color: var(--ready-text);
+    }
+
+    .brouillon {
+      background: var(--draft-bg);
+      color: var(--draft-text);
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .description {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .path {
+      margin-top: auto;
+      color: var(--accent-dark);
+      font-size: 0.86rem;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .empty {
+      display: none;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 28px;
+      background: var(--panel);
+      color: var(--muted);
+    }
+
+    @media (max-width: 680px) {
+      .top {
+        display: block;
+      }
+
+      .count {
+        margin-top: 14px;
+      }
+
+      .filters button {
+        flex: 1 1 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap top">
+      <div>
+        <h1>Visualisations</h1>
+        <p class="subtitle">Catalogue par niveau avec statut de publication.</p>
+      </div>
+      <div class="count" id="count"></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="filters" aria-label="Filtres">
+      <button class="active" type="button" data-filter-group="category" data-filter-value="all">Tous</button>
+      <button type="button" data-filter-group="category" data-filter-value="1M">1M</button>
+      <button type="button" data-filter-group="category" data-filter-value="2M">2M</button>
+      <button type="button" data-filter-group="category" data-filter-value="3M">3M</button>
+      <button type="button" data-filter-group="category" data-filter-value="4M">4M</button>
+      <button type="button" data-filter-group="status" data-filter-value="all">Tous statuts</button>
+      <button type="button" data-filter-group="status" data-filter-value="pret">Pret</button>
+      <button type="button" data-filter-group="status" data-filter-value="brouillon">Brouillon</button>
+    </section>
+
+    <section class="grid" id="grid" aria-live="polite"></section>
+    <p class="empty" id="empty">Aucune visualisation ne correspond aux filtres.</p>
+  </main>
+
+  <script>
+    const state = {
+      category: "all",
+      status: "all",
+      items: []
+    };
+
+    const labels = {
+      pret: "Prêt",
+      brouillon: "Brouillon"
+    };
+
+    const grid = document.querySelector("#grid");
+    const count = document.querySelector("#count");
+    const empty = document.querySelector("#empty");
+
+    function visibleItems() {
+      return state.items.filter((item) => {
+        const categoryOk = state.category === "all" || item.category === state.category;
+        const statusOk = state.status === "all" || item.status === state.status;
+        return categoryOk && statusOk;
+      });
+    }
+
+    function render() {
+      const items = visibleItems();
+      grid.innerHTML = items.map((item) => `
+        <a class="card" href="${item.path}">
+          <div class="meta">
+            <span class="tag category">${item.category}</span>
+            <span class="tag ${item.status}">${labels[item.status] || item.status}</span>
+          </div>
+          <h2>${item.title}</h2>
+          <p class="description">${item.description || ""}</p>
+          <span class="path">${item.path}</span>
+        </a>
+      `).join("");
+      count.textContent = `${items.length} / ${state.items.length}`;
+      empty.style.display = items.length ? "none" : "block";
+    }
+
+    document.querySelectorAll("button[data-filter-group]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const group = button.dataset.filterGroup;
+        state[group] = button.dataset.filterValue;
+
+        document.querySelectorAll(`button[data-filter-group="${group}"]`).forEach((peer) => {
+          peer.classList.toggle("active", peer === button);
+        });
+
+        render();
+      });
+    });
+
+    fetch("visualisations.json")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((items) => {
+        state.items = items.sort((a, b) => {
+          return a.category.localeCompare(b.category) || a.title.localeCompare(b.title);
+        });
+        render();
+      })
+      .catch((error) => {
+        grid.innerHTML = "";
+        count.textContent = "Erreur";
+        empty.textContent = `Impossible de charger visualisations.json: ${error.message}`;
+        empty.style.display = "block";
+      });
+  </script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Théorème de la valeur intermédiaire</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsxgraph@1.4.6/distrib/jsxgraphcore.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/jsxgraph@1.4.6/distrib/jsxgraph.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .board-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        #board {
+            width: 800px;
+            height: 600px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        .explanation {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e8f4fd;
+            border-left: 4px solid #2196F3;
+            border-radius: 4px;
+        }
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .slider-container {
+            display: inline-block;
+            margin: 0 20px;
+            text-align: center;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            gap: 15px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            background-color: #f8f9fa;
+            border-radius: 15px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Théorème de la valeur intermédiaire</h1>
+        
+        <div class="explanation">
+            <strong>Théorème :</strong> Si f est une fonction continue sur un intervalle [a;b], alors l'image de [a;b] par f est l'intervalle [m;M] où :
+            <ul>
+                <li><strong>m</strong> = minimum de f sur [a;b]</li>
+                <li><strong>M</strong> = maximum de f sur [a;b]</li>
+            </ul>
+            Cela signifie que f prend toutes les valeurs entre m et M.
+        </div>
+
+        <div class="board-container">
+            <div id="board"></div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #2196F3;"></div>
+                <span>Fonction f(x)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #FF5722; height: 8px; width: 8px; border-radius: 50%;"></div>
+                <span>Points (a, f(a)) et (b, f(b))</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #4CAF50;"></div>
+                <span>Intervalle [a;b] sur l'axe x</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #9C27B0;"></div>
+                <span>Image [m;M] sur l'axe y</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="slider-container">
+                <label>Position de a :</label><br>
+                <input type="range" id="sliderA" min="-4" max="2" step="0.1" value="-2">
+                <span id="valueA">-2</span>
+            </div>
+            <div class="slider-container">
+                <label>Position de b :</label><br>
+                <input type="range" id="sliderB" min="-1" max="5" step="0.1" value="3">
+                <span id="valueB">3</span>
+            </div>
+        </div>
+
+        <div class="explanation">
+            <strong>Interprétation graphique :</strong>
+            <ul>
+                <li>L'intervalle vert [a;b] sur l'axe des x représente le domaine d'étude</li>
+                <li>L'intervalle violet [m;M] sur l'axe des y représente l'image de [a;b]</li>
+                <li>Toute droite horizontale y = k avec m ≤ k ≤ M coupe la courbe au moins une fois</li>
+                <li>Les points rouges montrent f(a) et f(b)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Wait for JSXGraph to load
+        window.addEventListener('load', function() {
+            // Initialisation du graphique
+            const board = JXG.JSXGraph.initBoard('board', {
+                boundingbox: [-5, 6, 6, -3],
+                axis: true,
+                showCopyright: false,
+                showNavigation: false,
+                grid: true,
+                pan: {enabled: false},
+                zoom: {enabled: false}
+            });
+
+        // Configuration des axes
+        board.defaultAxes.x.setAttribute({
+            name: 'x',
+            withLabel: true,
+            label: {position: 'rt', offset: [-10, 20]}
+        });
+        board.defaultAxes.y.setAttribute({
+            name: 'y', 
+            withLabel: true,
+            label: {position: 'rt', offset: [20, -10]}
+        });
+
+        // Fonction continue (polynôme du 3e degré)
+        function f(x) {
+            return 0.2 * x * x * x - 0.5 * x * x - x + 2;
+        }
+
+        // Variables pour les bornes
+        let a = -2;
+        let b = 3;
+
+        // Courbe de la fonction
+        const curve = board.create('functiongraph', [f], {
+            strokeColor: '#2196F3',
+            strokeWidth: 3,
+            name: 'f(x)'
+        });
+
+        // Points de contrôle pour les bornes
+        let pointA = board.create('point', [a, f(a)], {
+            size: 6,
+            color: '#FF5722',
+            name: 'A(a,f(a))',
+            fixed: true
+        });
+
+        let pointB = board.create('point', [b, f(b)], {
+            size: 6,
+            color: '#FF5722', 
+            name: 'B(b,f(b))',
+            fixed: true
+        });
+
+        // Fonction pour calculer min et max sur [a,b]
+        function findMinMax(a, b) {
+            const step = 0.01;
+            let min = f(a);
+            let max = f(a);
+            let xMin = a;
+            let xMax = a;
+            
+            for (let x = a; x <= b; x += step) {
+                const y = f(x);
+                if (y < min) {
+                    min = y;
+                    xMin = x;
+                }
+                if (y > max) {
+                    max = y;
+                    xMax = x;
+                }
+            }
+            return { min, max, xMin, xMax };
+        }
+
+        // Segments pour visualiser les intervalles
+        let intervalX = board.create('segment', [[a, -2.5], [b, -2.5]], {
+            strokeColor: '#4CAF50',
+            strokeWidth: 6,
+            name: '[a;b]'
+        });
+
+        let intervalY = board.create('segment', [[-4.5, 0], [-4.5, 0]], {
+            strokeColor: '#9C27B0',
+            strokeWidth: 6,
+            name: '[m;M]'
+        });
+
+        // Points pour marquer les extrémités des intervalles
+        let markerAX = board.create('point', [a, -2.5], {
+            size: 4,
+            color: '#4CAF50',
+            name: 'a',
+            fixed: true
+        });
+
+        let markerBX = board.create('point', [b, -2.5], {
+            size: 4,
+            color: '#4CAF50',
+            name: 'b', 
+            fixed: true
+        });
+
+        let markerMinY = board.create('point', [-4.5, 0], {
+            size: 4,
+            color: '#9C27B0',
+            name: 'm',
+            fixed: true
+        });
+
+        let markerMaxY = board.create('point', [-4.5, 0], {
+            size: 4,
+            color: '#9C27B0',
+            name: 'M',
+            fixed: true
+        });
+
+        // Lignes pointillées pour relier les extrema
+        let lineMin = board.create('line', [[0, 0], [1, 0]], {
+            strokeColor: '#9C27B0',
+            strokeWidth: 2,
+            dash: 2,
+            fixed: true
+        });
+
+        let lineMax = board.create('line', [[0, 0], [1, 0]], {
+            strokeColor: '#9C27B0',
+            strokeWidth: 2,
+            dash: 2,
+            fixed: true
+        });
+
+        // Points pour marquer les extrema sur la courbe
+        let extremaMin = board.create('point', [0, 0], {
+            size: 6,
+            color: '#9C27B0',
+            name: 'min',
+            fixed: true
+        });
+
+        let extremaMax = board.create('point', [0, 0], {
+            size: 6,
+            color: '#9C27B0',
+            name: 'max',
+            fixed: true
+        });
+
+        // Fonction de mise à jour
+        function updateVisualization() {
+            const { min, max, xMin, xMax } = findMinMax(a, b);
+            
+            // Mise à jour des points principaux
+            pointA.setPosition(JXG.COORDS_BY_USER, [a, f(a)]);
+            pointB.setPosition(JXG.COORDS_BY_USER, [b, f(b)]);
+            
+            // Mise à jour de l'intervalle [a;b]
+            intervalX.point1.setPosition(JXG.COORDS_BY_USER, [a, -2.5]);
+            intervalX.point2.setPosition(JXG.COORDS_BY_USER, [b, -2.5]);
+            markerAX.setPosition(JXG.COORDS_BY_USER, [a, -2.5]);
+            markerBX.setPosition(JXG.COORDS_BY_USER, [b, -2.5]);
+            
+            // Mise à jour de l'intervalle [m;M]
+            intervalY.point1.setPosition(JXG.COORDS_BY_USER, [-4.5, min]);
+            intervalY.point2.setPosition(JXG.COORDS_BY_USER, [-4.5, max]);
+            markerMinY.setPosition(JXG.COORDS_BY_USER, [-4.5, min]);
+            markerMaxY.setPosition(JXG.COORDS_BY_USER, [-4.5, max]);
+            
+            // Mise à jour des points extrema
+            extremaMin.setPosition(JXG.COORDS_BY_USER, [xMin, min]);
+            extremaMax.setPosition(JXG.COORDS_BY_USER, [xMax, max]);
+            
+            // Mise à jour des lignes pointillées
+            lineMin.point1.setPosition(JXG.COORDS_BY_USER, [xMin, min]);
+            lineMin.point2.setPosition(JXG.COORDS_BY_USER, [-4.5, min]);
+            lineMax.point1.setPosition(JXG.COORDS_BY_USER, [xMax, max]);
+            lineMax.point2.setPosition(JXG.COORDS_BY_USER, [-4.5, max]);
+            
+            board.update();
+        }
+
+        // Gestion des sliders
+        const sliderA = document.getElementById('sliderA');
+        const sliderB = document.getElementById('sliderB');
+        const valueA = document.getElementById('valueA');
+        const valueB = document.getElementById('valueB');
+
+        sliderA.addEventListener('input', function() {
+            a = parseFloat(this.value);
+            if (a >= b) {
+                a = b - 0.1;
+                this.value = a;
+            }
+            valueA.textContent = a.toFixed(1);
+            updateVisualization();
+        });
+
+        sliderB.addEventListener('input', function() {
+            b = parseFloat(this.value);
+            if (b <= a) {
+                b = a + 0.1;
+                this.value = b;
+            }
+            valueB.textContent = b.toFixed(1);
+            updateVisualization();
+        });
+
+        // Initialisation
+        updateVisualization();
+        
+        }); // End of window load event listener
+    </script>
+</body>
+</html>

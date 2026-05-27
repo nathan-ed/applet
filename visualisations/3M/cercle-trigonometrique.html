@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cercle Trigonométrique</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsxgraph@1.7.0/distrib/jsxgraphcore.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/jsxgraph@1.7.0/distrib/jsxgraph.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2.2em;
+            font-weight: 300;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .circle-container, .graphs-container {
+            background: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .section-title {
+            text-align: center;
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .board-container {
+            width: 100%;
+            height: 400px;
+        }
+
+        .graphs-board {
+            width: 100%;
+            height: 400px;
+        }
+
+        .controls-panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .angle-control {
+            margin-bottom: 25px;
+        }
+
+        .angle-control h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .angle-slider {
+            width: 100%;
+            height: 8px;
+            background: #dee2e6;
+            outline: none;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .angle-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #007bff;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .angle-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .angle-value {
+            text-align: center;
+            padding: 8px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+
+        .angle-value strong {
+            color: #007bff;
+            font-size: 1.1em;
+        }
+
+        .trig-values {
+            background: white;
+            border-radius: 6px;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+        }
+
+        .trig-values h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .trig-function {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .function-name {
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .function-value {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .sin-value { color: #dc3545; }
+        .cos-value { color: #28a745; }
+        .tan-value { color: #fd7e14; }
+
+        .special-angles {
+            margin-top: 20px;
+        }
+
+        .special-angles h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .angle-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .angle-btn {
+            padding: 8px 12px;
+            background: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+
+        .angle-btn:hover {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .instructions {
+            background: #e7f3ff;
+            border: 1px solid #b3d7ff;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 20px;
+            color: #0c5460;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .board-container, .graphs-board {
+                height: 350px;
+            }
+            
+            .angle-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cercle Trigonométrique et Fonctions</h1>
+        
+        <div class="main-content">
+            <div class="circle-container">
+                <div class="section-title">Cercle Trigonométrique</div>
+                <div id="board" class="board-container"></div>
+            </div>
+            
+            <div class="graphs-container">
+                <div class="section-title">Graphiques des Fonctions</div>
+                <div id="graphsBoard" class="graphs-board"></div>
+            </div>
+        </div>
+        
+        <div class="controls-panel">
+                <div class="angle-control">
+                    <h3>Angle θ</h3>
+                    <input type="range" id="angleSlider" class="angle-slider" 
+                           min="0" max="360" value="30" step="1">
+                    
+                    <div class="angle-display">
+                        <div class="angle-value">
+                            <div>Degrés</div>
+                            <strong id="degreesValue">30°</strong>
+                        </div>
+                        <div class="angle-value">
+                            <div>Radians</div>
+                            <strong id="radiansValue">π/6</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="trig-values">
+                    <h3>Valeurs Trigonométriques</h3>
+                    
+                    <div class="trig-function">
+                        <span class="function-name">sin θ =</span>
+                        <span class="function-value sin-value" id="sinValue">0.500</span>
+                    </div>
+                    
+                    <div class="trig-function">
+                        <span class="function-name">cos θ =</span>
+                        <span class="function-value cos-value" id="cosValue">0.866</span>
+                    </div>
+                    
+                    <div class="trig-function">
+                        <span class="function-name">tan θ =</span>
+                        <span class="function-value tan-value" id="tanValue">0.577</span>
+                    </div>
+                </div>
+                
+                <div class="special-angles">
+                    <h3>Angles Remarquables</h3>
+                    <div class="angle-buttons">
+                        <div class="angle-btn" onclick="setAngle(0)">0°</div>
+                        <div class="angle-btn" onclick="setAngle(30)">30°</div>
+                        <div class="angle-btn" onclick="setAngle(45)">45°</div>
+                        <div class="angle-btn" onclick="setAngle(60)">60°</div>
+                        <div class="angle-btn" onclick="setAngle(90)">90°</div>
+                        <div class="angle-btn" onclick="setAngle(120)">120°</div>
+                        <div class="angle-btn" onclick="setAngle(135)">135°</div>
+                        <div class="angle-btn" onclick="setAngle(150)">150°</div>
+                        <div class="angle-btn" onclick="setAngle(180)">180°</div>
+                        <div class="angle-btn" onclick="setAngle(270)">270°</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <strong>Instructions:</strong> Déplacez le curseur ou cliquez sur les angles remarquables pour explorer les fonctions trigonométriques. 
+            Le point rouge sur le cercle montre la position de l'angle, les projections rouge et verte représentent respectivement sin θ et cos θ.
+        </div>
+    </div>
+
+    <script>
+        let board, graphsBoard;
+        let circle, point, angleArc;
+        let sinLine, cosLine, tanLine, tanConnectionLine;
+        let sinPoint, cosPoint, tanPoint;
+        let sinGraph, cosGraph, tanGraph;
+        let sinMarker, cosMarker, tanMarker, angleMarker;
+        let currentAngle = 30; // en degrés
+
+        // Initialisation des boards
+        function initBoard() {
+            // Board pour le cercle
+            board = JXG.JSXGraph.initBoard('board', {
+                boundingbox: [-1.5, 1.5, 1.5, -1.5],
+                axis: true,
+                grid: false,
+                showCopyright: false,
+                showNavigation: false,
+                pan: {enabled: false},
+                zoom: {enabled: false},
+                keepAspectRatio: true
+            });
+
+            // Board pour les graphiques
+            graphsBoard = JXG.JSXGraph.initBoard('graphsBoard', {
+                boundingbox: [-0.5, 2, 7, -2],
+                axis: true,
+                grid: true,
+                showCopyright: false,
+                showNavigation: false,
+                pan: {enabled: false},
+                zoom: {enabled: false}
+            });
+
+            // Axes avec labels
+            board.defaultAxes.x.setAttribute({
+                strokeColor: '#666',
+                strokeWidth: 1,
+                ticks: {
+                    majorHeight: 10,
+                    minorTicks: 4,
+                    strokeColor: '#999'
+                }
+            });
+            
+            board.defaultAxes.y.setAttribute({
+                strokeColor: '#666',
+                strokeWidth: 1,
+                ticks: {
+                    majorHeight: 10,
+                    minorTicks: 4,
+                    strokeColor: '#999'
+                }
+            });
+
+            createTrigCircle();
+            createFunctionGraphs();
+            updateVisualization();
+        }
+
+        // Création du cercle trigonométrique
+        function createTrigCircle() {
+            // Cercle unité
+            circle = board.create('circle', [[0, 0], 1], {
+                strokeColor: '#2c3e50',
+                strokeWidth: 3,
+                fillColor: 'transparent'
+            });
+
+            // Labels des axes
+            board.create('text', [1.1, 0.05, '1'], {fontSize: 14, color: '#666'});
+            board.create('text', [-1.15, 0.05, '-1'], {fontSize: 14, color: '#666'});
+            board.create('text', [0.05, 1.1, '1'], {fontSize: 14, color: '#666'});
+            board.create('text', [0.05, -1.15, '-1'], {fontSize: 14, color: '#666'});
+
+            // Point sur le cercle
+            point = board.create('point', [1, 0], {
+                name: 'P',
+                size: 6,
+                fillColor: '#e74c3c',
+                strokeColor: '#c0392b',
+                strokeWidth: 2
+            });
+
+            // Arc d'angle
+            angleArc = board.create('arc', [[0, 0], [1, 0], point], {
+                strokeColor: '#3498db',
+                strokeWidth: 3,
+                fillColor: 'rgba(52, 152, 219, 0.1)',
+                highlightFillColor: 'rgba(52, 152, 219, 0.2)'
+            });
+
+            // Ligne du rayon
+            board.create('segment', [[0, 0], point], {
+                strokeColor: '#2c3e50',
+                strokeWidth: 2,
+                strokeDashArray: [5, 5]
+            });
+        }
+
+        // Création des graphiques des fonctions
+        function createFunctionGraphs() {
+            // Fonction sinus
+            sinGraph = graphsBoard.create('functiongraph', [
+                function(x) { return Math.sin(x); },
+                0, 2 * Math.PI
+            ], {
+                strokeColor: '#e74c3c',
+                strokeWidth: 3,
+                name: 'sin(x)'
+            });
+
+            // Fonction cosinus
+            cosGraph = graphsBoard.create('functiongraph', [
+                function(x) { return Math.cos(x); },
+                0, 2 * Math.PI
+            ], {
+                strokeColor: '#27ae60',
+                strokeWidth: 3,
+                name: 'cos(x)'
+            });
+
+            // Fonction tangente
+            tanGraph = graphsBoard.create('functiongraph', [
+                function(x) { 
+                    const val = Math.tan(x);
+                    return Math.abs(val) > 10 ? NaN : val;
+                },
+                0, 2 * Math.PI
+            ], {
+                strokeColor: '#f39c12',
+                strokeWidth: 3,
+                name: 'tan(x)'
+            });
+
+            // Marqueurs sur les graphiques
+            sinMarker = graphsBoard.create('point', [0, 0], {
+                size: 6,
+                fillColor: '#e74c3c',
+                strokeColor: '#c0392b',
+                strokeWidth: 2,
+                name: 'sin'
+            });
+
+            cosMarker = graphsBoard.create('point', [0, 1], {
+                size: 6,
+                fillColor: '#27ae60',
+                strokeColor: '#229954',
+                strokeWidth: 2,
+                name: 'cos'
+            });
+
+            tanMarker = graphsBoard.create('point', [0, 0], {
+                size: 6,
+                fillColor: '#f39c12',
+                strokeColor: '#e67e22',
+                strokeWidth: 2,
+                name: 'tan'
+            });
+
+            // Ligne verticale pour l'angle
+            angleMarker = graphsBoard.create('line', [[0, -2], [0, 2]], {
+                strokeColor: '#666',
+                strokeWidth: 2,
+                strokeDashArray: [5, 5]
+            });
+
+            // Labels pour les axes
+            graphsBoard.create('text', [Math.PI/2, -1.7, 'π/2'], {fontSize: 12, color: '#666'});
+            graphsBoard.create('text', [Math.PI, -1.7, 'π'], {fontSize: 12, color: '#666'});
+            graphsBoard.create('text', [3*Math.PI/2, -1.7, '3π/2'], {fontSize: 12, color: '#666'});
+            graphsBoard.create('text', [2*Math.PI, -1.7, '2π'], {fontSize: 12, color: '#666'});
+        }
+
+        // Mise à jour de la visualisation
+        function updateVisualization() {
+            // Conversion en radians
+            const radians = currentAngle * Math.PI / 180;
+            
+            // Position du point sur le cercle
+            const x = Math.cos(radians);
+            const y = Math.sin(radians);
+            
+            // Mise à jour du point
+            point.setPosition(JXG.COORDS_BY_USER, [x, y]);
+            
+            // Suppression des anciennes lignes
+            if (sinLine) board.removeObject(sinLine);
+            if (cosLine) board.removeObject(cosLine);
+            if (tanLine) board.removeObject(tanLine);
+            if (tanConnectionLine) board.removeObject(tanConnectionLine);
+            if (sinPoint) board.removeObject(sinPoint);
+            if (cosPoint) board.removeObject(cosPoint);
+            if (tanPoint) board.removeObject(tanPoint);
+
+            // Ligne pour sin θ (projection sur l'axe Y)
+            sinLine = board.create('segment', [[x, y], [0, y]], {
+                strokeColor: '#e74c3c',
+                strokeWidth: 3,
+                strokeDashArray: [3, 3]
+            });
+            
+            sinPoint = board.create('point', [0, y], {
+                name: 'sin θ',
+                size: 4,
+                fillColor: '#e74c3c',
+                strokeColor: '#c0392b',
+                fixed: true
+            });
+
+            // Ligne pour cos θ (projection sur l'axe X)
+            cosLine = board.create('segment', [[x, y], [x, 0]], {
+                strokeColor: '#27ae60',
+                strokeWidth: 3,
+                strokeDashArray: [3, 3]
+            });
+            
+            cosPoint = board.create('point', [x, 0], {
+                name: 'cos θ',
+                size: 4,
+                fillColor: '#27ae60',
+                strokeColor: '#229954',
+                fixed: true
+            });
+
+            // Ligne tangente (seulement si cos θ ≠ 0)
+            if (Math.abs(Math.cos(radians)) > 0.001) {
+                const tanValue = Math.tan(radians);
+                if (Math.abs(tanValue) < 10) { // Limite pour éviter les valeurs trop grandes
+                    tanLine = board.create('segment', [[1, 0], [1, tanValue]], {
+                        strokeColor: '#f39c12',
+                        strokeWidth: 3
+                    });
+                    
+                    tanPoint = board.create('point', [1, tanValue], {
+                        name: 'tan θ',
+                        size: 4,
+                        fillColor: '#f39c12',
+                        strokeColor: '#e67e22',
+                        fixed: true
+                    });
+
+                    // Ligne de connection pour montrer la tangente
+                    tanConnectionLine = board.create('segment', [[0, 0], [1, tanValue]], {
+                        strokeColor: '#f39c12',
+                        strokeWidth: 1,
+                        strokeDashArray: [2, 2]
+                    });
+                }
+            }
+
+            // Mise à jour des marqueurs sur les graphiques
+            sinMarker.setPosition(JXG.COORDS_BY_USER, [radians, Math.sin(radians)]);
+            cosMarker.setPosition(JXG.COORDS_BY_USER, [radians, Math.cos(radians)]);
+            
+            if (Math.abs(Math.cos(radians)) > 0.001 && Math.abs(Math.tan(radians)) < 10) {
+                tanMarker.setPosition(JXG.COORDS_BY_USER, [radians, Math.tan(radians)]);
+                tanMarker.setAttribute({visible: true});
+            } else {
+                tanMarker.setAttribute({visible: false});
+            }
+
+            // Mise à jour de la ligne d'angle
+            angleMarker.point1.setPosition(JXG.COORDS_BY_USER, [radians, -2]);
+            angleMarker.point2.setPosition(JXG.COORDS_BY_USER, [radians, 2]);
+
+            // Mise à jour des valeurs affichées
+            updateValues();
+        }
+
+        // Mise à jour des valeurs numériques
+        function updateValues() {
+            const radians = currentAngle * Math.PI / 180;
+            
+            // Valeurs trigonométriques
+            const sinValue = Math.sin(radians);
+            const cosValue = Math.cos(radians);
+            const tanValue = Math.tan(radians);
+
+            // Affichage des degrés
+            document.getElementById('degreesValue').textContent = currentAngle + '°';
+            
+            // Affichage des radians (avec fractions pour angles remarquables)
+            document.getElementById('radiansValue').textContent = formatRadians(currentAngle);
+            
+            // Affichage des valeurs trigonométriques
+            document.getElementById('sinValue').textContent = sinValue.toFixed(3);
+            document.getElementById('cosValue').textContent = cosValue.toFixed(3);
+            
+            if (Math.abs(cosValue) < 0.001) {
+                document.getElementById('tanValue').textContent = '∞';
+            } else {
+                document.getElementById('tanValue').textContent = tanValue.toFixed(3);
+            }
+        }
+
+        // Formatage des radians en fractions pour les angles remarquables
+        function formatRadians(degrees) {
+            const fractions = {
+                0: '0',
+                30: 'π/6',
+                45: 'π/4',
+                60: 'π/3',
+                90: 'π/2',
+                120: '2π/3',
+                135: '3π/4',
+                150: '5π/6',
+                180: 'π',
+                210: '7π/6',
+                225: '5π/4',
+                240: '4π/3',
+                270: '3π/2',
+                300: '5π/3',
+                315: '7π/4',
+                330: '11π/6',
+                360: '2π'
+            };
+            
+            return fractions[degrees] || (degrees * Math.PI / 180).toFixed(3);
+        }
+
+        // Fonction pour définir un angle spécifique
+        function setAngle(degrees) {
+            currentAngle = degrees;
+            document.getElementById('angleSlider').value = degrees;
+            updateVisualization();
+        }
+
+        // Event listener pour le slider
+        document.getElementById('angleSlider').addEventListener('input', function() {
+            currentAngle = parseInt(this.value);
+            updateVisualization();
+        });
+
+        // Initialisation
+        window.addEventListener('load', initBoard);
+        window.addEventListener('resize', function() {
+            setTimeout(updateVisualization, 100);
+        });
+    </script>
+</body>
+</html>
