@@ -230,7 +230,7 @@
       <button type="button" data-filter-group="category" data-filter-value="3M">3M</button>
       <button type="button" data-filter-group="category" data-filter-value="4M">4M</button>
       <button type="button" data-filter-group="status" data-filter-value="all">Tous statuts</button>
-      <button type="button" data-filter-group="status" data-filter-value="pret">Pret</button>
+      <button type="button" data-filter-group="status" data-filter-value="pret">Prêt</button>
       <button type="button" data-filter-group="status" data-filter-value="brouillon">Brouillon</button>
     </section>
 
@@ -255,7 +255,7 @@
     const empty = document.querySelector("#empty");
 
     function visibleItems() {
-      return state.items.filter((item) => {
+      return state.items.filter((item) => item.status !== "non-publie").filter((item) => {
         const categoryOk = state.category === "all" || item.category === state.category;
         const statusOk = state.status === "all" || item.status === state.status;
         return categoryOk && statusOk;
@@ -264,6 +264,7 @@
 
     function render() {
       const items = visibleItems();
+      const publicTotal = state.items.filter((item) => item.status !== "non-publie").length;
       grid.innerHTML = items.map((item) => `
         <a class="card" href="${item.path}">
           <div class="meta">
@@ -275,7 +276,7 @@
           <span class="path">${item.path}</span>
         </a>
       `).join("");
-      count.textContent = `${items.length} / ${state.items.length}`;
+      count.textContent = `${items.length} / ${publicTotal}`;
       empty.style.display = items.length ? "none" : "block";
     }
 

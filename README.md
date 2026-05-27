@@ -1,6 +1,6 @@
 # Visualisations
 
-Catalogue statique de visualisations classees par categorie (`1M`, `2M`, `3M`, `4M`) et par statut (`brouillon`, `prêt`).
+Catalogue statique de visualisations classees par categorie (`1M`, `2M`, `3M`, `4M`) et par statut (`non-publie`, `brouillon`, `pret`).
 
 ## Ajouter une visualisation
 
@@ -12,8 +12,9 @@ GitHub Pages publie automatiquement le site apres chaque push sur `main`.
 
 ## Statuts
 
-- `brouillon`: visualisation en cours de preparation.
-- `pret`: visualisation prête a etre utilisee.
+- `non-publie`: la visualisation n'apparait pas sur la page catalogue.
+- `brouillon`: la visualisation apparait avec le tag `Brouillon`.
+- `pret`: la visualisation apparait avec le tag `Prêt`.
 
 ## Exemple d'entree
 

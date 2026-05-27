@@ -2,56 +2,56 @@
   {
     "title": "Frise chronologique - Les Lumieres",
     "category": "1M",
-    "status": "pret",
+    "status": "non-publie",
     "path": "visualisations/1M/frise-lumieres.html",
     "description": "Frise chronologique sur Les Lumieres et la litterature francaise du XVIIIe siecle."
   },
   {
     "title": "Cercle trigonometrique",
     "category": "3M",
-    "status": "pret",
+    "status": "non-publie",
     "path": "visualisations/3M/cercle-trigonometrique.html",
     "description": "Visualisation interactive du cercle trigonometrique."
   },
   {
     "title": "Fonctions trigonometriques",
     "category": "3M",
-    "status": "pret",
+    "status": "non-publie",
     "path": "visualisations/3M/fonctions-trigonometriques.html",
     "description": "Exploration des fonctions sinus, cosinus et tangente."
   },
   {
     "title": "Identites remarquables",
     "category": "3M",
-    "status": "pret",
+    "status": "non-publie",
     "path": "visualisations/3M/identites-remarquables.html",
     "description": "Visualisation des identites remarquables."
   },
   {
     "title": "Identite remarquable simple",
     "category": "3M",
-    "status": "brouillon",
+    "status": "non-publie",
     "path": "visualisations/3M/simple-identites.html",
     "description": "Version simple de l'identite remarquable (a+b)^2."
   },
   {
     "title": "Theoreme de la valeur intermediaire",
     "category": "3M",
-    "status": "pret",
+    "status": "non-publie",
     "path": "visualisations/3M/theoreme-valeur-intermediaire.html",
     "description": "Visualisation du theoreme de la valeur intermediaire."
   },
   {
     "title": "TVI - version simple",
     "category": "3M",
-    "status": "brouillon",
+    "status": "non-publie",
     "path": "visualisations/3M/simple-ivt.html",
     "description": "Version simple du theoreme de la valeur intermediaire."
   },
   {
     "title": "Limite geometrique",
     "category": "3M",
-    "status": "pret",
+    "status": "non-publie",
     "path": "visualisations/3M/limite-geometrique.html",
     "description": "Introduction geometrique a la notion de limite."
   }
