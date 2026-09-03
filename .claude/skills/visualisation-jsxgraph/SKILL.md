@@ -7,8 +7,6 @@ description: Creer une visualisation mathematique interactive en JSXGraph pour c
 
 ## 1. Ce qu'il faut demander avant d'ecrire
 
-Trois informations, a demander en une fois si elles manquent :
-
 - **la classe** et **le chapitre**. Pour l'instant tout va dans l'un des deux :
 
   | classe | chapitre | dossier |
@@ -19,61 +17,109 @@ Trois informations, a demander en une fois si elles manquent :
   D'autres classes et chapitres pourront s'ajouter ; demander lequel si le sujet
   ne colle a aucun des deux. Les anciennes visualisations non classees restent
   dans `visualisations/brouillon/` en `non-publie` ;
-
 - **le statut** : `brouillon` ou `en-ligne`. Toujours demander, ne jamais choisir a la place.
-
-Statuts possibles :
 
 | statut | effet sur la page |
 |---|---|
 | `non-publie` | n'apparait pas |
-| `brouillon` | apparait avec le tag « Brouillon » |
-| `en-ligne` | apparait avec le tag « En ligne » |
+| `brouillon` | n'apparait pas |
+| `en-ligne` | apparait dans le tableau |
+
+Seul `en-ligne` s'affiche : la page ne montre aucune pastille de statut.
 
 ## 2. Regles de forme (non negociables)
 
-- **Pas de texte explicatif.** Un titre, la figure, les reglages, rien d'autre.
+- **Pas de texte explicatif.** Un titre, la figure, les reglages, les mesures.
   Aucun paragraphe de cours, aucun encadre « ce qui se passe », aucun verdict
-  commente, aucune note pedagogique. La figure explique, pas le texte.
+  commente, aucune note pedagogique, aucune description. La figure explique.
 - **Pas de style genere.** Pas d'emoji, pas de gras rhetorique, pas de listes a
   puces, pas de ton enthousiaste.
 - **Francais sans anglicismes.** « Animer / Arreter », pas « Play / Pause ».
-  Virgule decimale.
+  Virgule decimale, signe moins typographique (`−`).
+- **Marquer `≈`** devant toute valeur qui n'est pas exacte a l'affichage :
+  resultat d'un calcul numerique (integrale, dichotomie) toujours, valeur
+  ponctuelle seulement si l'arrondi la change.
+
+  ```js
+  function arrondi(x) {   // « ≈ » seulement si l'arrondi n'est pas exact
+    return (Math.abs(x - Math.round(x * 100) / 100) < 5e-13 ? '' : '≈ ') + fmt(x);
+  }
+  ```
 - **Une seule colonne**, largeur maximale 720 px, la figure en haut.
-- **Lien de retour** en haut de page : `<a class="retour" href="../../../index.html">← Retour au catalogue</a>`
-  (trois niveaux depuis `visualisations/<classe>/<chapitre>/`). Il est deja dans le gabarit.
+- **Lien de retour** en haut de page :
+  `<a class="retour" href="../../../index.html">← Retour au catalogue</a>`
+  (trois niveaux depuis `visualisations/<classe>/<chapitre>/`). Deja dans le gabarit.
 - **Source en une ligne** en bas de carte quand la visualisation vient d'une video
   ou d'un article : `D'après <a href="...">Titre</a>, Auteur.` Sinon, pas de ligne.
 
 ## 3. Ecrire le fichier
 
-Partir de `references/gabarit.html` (dans ce dossier de skill) : c'est la mise en
-page de reference, deja conforme aux regles ci-dessus.
-
-Emplacement, calcule par le script :
+Partir de `references/gabarit.html` (dans ce dossier de skill). Emplacement calcule
+par le script :
 
 ```bash
 python3 scripts/catalogue.py chemin --annee 4M1 --chapitre "1 Calcul intégral" --nom "Somme de Riemann"
 # -> visualisations/4M1/1-calcul-integral/somme-de-riemann.html
 ```
 
-Creer le dossier si besoin, puis ecrire le fichier HTML autonome a ce chemin.
-
 ### Points techniques JSXGraph
 
-- `initBoard` avec `axis:false, showCopyright:false, showNavigation:false`,
-  `keepaspectratio:true`, `pan`/`zoom` desactives sauf besoin explicite.
+- `initBoard` avec `axis:false` (ou `true` pour un graphe de fonction),
+  `showCopyright:false, showNavigation:false`, `pan`/`zoom` desactives sauf besoin.
+  `keepaspectratio:true` pour une figure geometrique, `false` pour un graphe.
 - Beaucoup d'objets : les creer **une seule fois**, puis les deplacer avec
   `setPosition(JXG.COORDS_BY_USER, [x, y])` et masquer les inutiles avec
   `setAttribute({visible:false})`. Ne jamais recreer le plateau a chaque image.
+- Meme chose pour un nombre **variable** de solutions : creer un pool
+  (`MAXC = 12`) et n'en afficher que ce qui est utile. Toujours montrer **toutes**
+  les solutions du probleme, jamais la premiere seulement.
+- Aires et polygones : un `curve` dont on remplace `dataX` / `dataY`, avec
+  `fillColor` et `fillOpacity`, plutot qu'un `polygon` recree.
 - Encadrer toute mise a jour de `board.suspendUpdate()` / `board.unsuspendUpdate()`.
-- Reglages : `<input type="range">` HTML plutot que les curseurs JSXGraph, avec la
-  valeur affichee en chasse fixe a droite.
-- Animation : `setInterval` (~60 ms) pilote par un bouton qui bascule
-  « Animer » / « Arreter ».
+- Cadrage adaptatif : `board.setBoundingBox([x0, y1, x1, y0], false)` calcule
+  depuis un echantillonnage de la fonction.
+- Marquer les elements que l'enonce nomme : bornes `a` et `b`, images `f(a)`,
+  `f(b)`, solutions `c` — point + verticale pointillee + `text` avec
+  `text-shadow:0 0 3px #fff` pour rester lisible sur la courbe.
+- Reglages : `<input type="range">` HTML plutot que les curseurs JSXGraph, valeur
+  affichee a droite en chasse fixe.
+- Animation : `setInterval` (~60 ms) pilote par un bouton « Animer » / « Arreter ».
 - Au-dela de ~800 objets mobiles, l'affichage devient lent : plafonner le curseur.
 
-## 4. Enregistrer au catalogue
+### Saisie de valeurs et de fonctions
+
+L'utilisateur veut **taper** ses valeurs, pas les choisir dans une liste. Un
+`<input type="text">` et un bouton « Appliquer » (plus la touche Entree) ; les
+boutons de raccourci se contentent de remplir le champ. Bordure rouge
+(`classList.toggle('erreur', …)`) quand l'expression ne se lit pas — aucun
+message d'erreur ecrit.
+
+- **Fonction** : `board.jc.snippet(texte, true, 'x', true)` (JessieCode) accepte
+  `x^2+1`, `sin`, `sqrt`, `exp`, `abs`. Verifier que l'appel rend bien un nombre.
+- **Nombre** : analyseur maison en fractions exactes sur `BigInt` (`{n, d}`),
+  voir `visualisations/3M2/c1-boite-a-outils/nombre-d-or-tournesol.html`.
+  Indispensable des qu'on affiche une fraction continue : en flottant les termes
+  deviennent faux vers le quinzieme. Les constantes (`pi`, `e`, `phi`) sont
+  donnees a 60 chiffres, les racines calculees par `isqrt` sur `BigInt`.
+
+## 4. Verifier
+
+Aucun navigateur n'est disponible : extraire le `<script>` et le passer a Node.
+
+```bash
+python3 - <<'PY'
+import re
+s = open('visualisations/4M1/1-calcul-integral/ma-visu.html', encoding='utf-8').read()
+open('/tmp/verif.js', 'w').write(re.search(r'<script>\n(.*?)</script>', s, re.S).group(1))
+PY
+node --check /tmp/verif.js
+```
+
+Pour la partie calculatoire (integrale, dichotomie, fraction continue), extraire
+les fonctions pures et les comparer a des valeurs exactes connues avant de
+conclure que la visualisation est juste.
+
+## 5. Enregistrer au catalogue
 
 ```bash
 python3 scripts/catalogue.py ajouter \
@@ -84,8 +130,10 @@ python3 scripts/catalogue.py ajouter \
   --statut brouillon
 ```
 
-La commande refuse un fichier absent et remplace l'entree si le chemin existe deja.
-Ne jamais editer `visualisations.json` a la main.
+La commande refuse un fichier absent, remplace l'entree si le chemin existe deja,
+et regenere `visualisations.js` — la copie JavaScript du catalogue qui permet
+d'ouvrir `index.html` en double-clic, `fetch` etant interdit en `file://`.
+Ne jamais editer `visualisations.json` ni `visualisations.js` a la main.
 
 Changer le statut plus tard :
 
@@ -93,24 +141,19 @@ Changer le statut plus tard :
 python3 scripts/catalogue.py statut visualisations/4M1/1-calcul-integral/somme-de-riemann.html en-ligne
 ```
 
-Autres commandes : `lister [--annee 4M1] [--statut brouillon]`, `verifier`.
+Autres commandes : `chemin`, `lister [--annee 4M1] [--statut brouillon]`, `verifier`.
 
-## 5. Publier sur la Forge
+## 6. Publier sur la Forge
 
 ```bash
 scripts/deployer.sh "Ajout : somme de Riemann (4M1, calcul intégral)"
 ```
 
-Le script verifie le catalogue, commit, pousse sur `origin` s'il existe et sur
-`forge`, puis affiche l'adresse de la page. La publication GitLab Pages est faite
-par `.gitlab-ci.yml` et prend une a deux minutes.
+Verification du catalogue, commit, push sur `origin` (GitHub) puis sur `forge`
+(`git@forge.apps.education.fr:nathan.scheinmann-ext/visualisation.git`), et
+affichage de l'adresse de la page. La publication GitLab Pages vient de
+`.gitlab-ci.yml` et prend une a deux minutes.
 
-Verification seule, sans rien pousser : `scripts/deployer.sh --verifier`.
-
-Si le remote manque (message d'erreur explicite du script) :
-
-```bash
-git remote add forge git@forge.apps.education.fr:<groupe>/<projet>.git
-```
+Verification seule : `scripts/deployer.sh --verifier`.
 
 Ne pas publier sans que l'utilisateur l'ait demande.
