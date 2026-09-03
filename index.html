@@ -14,8 +14,6 @@
       --line: #d9ded8;
       --accent: #246b5a;
       --accent-dark: #17483d;
-      --draft-bg: #fff1d6;
-      --draft-text: #835000;
     }
 
     * {
@@ -131,24 +129,8 @@
       white-space: nowrap;
     }
 
-    .tag {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 0.72rem;
-      font-weight: 750;
-      text-transform: uppercase;
-    }
 
-    td .tag {
-      margin-left: 8px;
-      vertical-align: 1px;
-    }
 
-    .brouillon {
-      background: var(--draft-bg);
-      color: var(--draft-text);
-    }
 
     .empty {
       display: none;
@@ -214,7 +196,7 @@
     const selYear = document.querySelector("#fYear");
     const selChapter = document.querySelector("#fChapter");
 
-    const publie = (item) => item.status !== "non-publie";
+    const publie = (item) => item.status === "en-ligne" || item.status === "pret";
 
     function visibleItems() {
       return state.items.filter(publie).filter((item) => {
@@ -257,7 +239,6 @@
         <tr data-path="${item.path}" tabindex="0">
           <td>
             <a href="${item.path}">${item.title}</a>
-            ${item.status === "brouillon" ? `<span class="tag brouillon">Brouillon</span>` : ""}
           </td>
           <td class="secondaire">${item.category}</td>
           <td class="secondaire">${item.chapter || ""}</td>

@@ -68,5 +68,12 @@
     "status": "en-ligne",
     "path": "visualisations/3M2/c1-boite-a-outils/nombre-d-or-tournesol.html",
     "chapter": "C1 Boîte à outils"
+  },
+  {
+    "title": "Théorème de la moyenne",
+    "category": "4M1",
+    "chapter": "1 Calcul intégral",
+    "status": "brouillon",
+    "path": "visualisations/4M1/1-calcul-integral/theoreme-de-la-moyenne.html"
   }
 ]

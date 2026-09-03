@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Théorème de la moyenne</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsxgraph@1.9.2/distrib/jsxgraph.css">
+<script src="https://cdn.jsdelivr.net/npm/jsxgraph@1.9.2/distrib/jsxgraphcore.js"></script>
+<style>
+  :root{--bg:#f4f6f9;--card:#fff;--ink:#1f2933;--muted:#6b7785;--accent:#2563eb;--line:#dde3ea;--or:#c98a06}
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px 16px 40px;background:var(--bg);color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.5}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-size:1.5rem;margin:0 0 18px;text-align:center;font-weight:600}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+  #board{width:100%;aspect-ratio:4/3;border-radius:10px;border:1px solid var(--line);background:#fff;touch-action:none}
+  .row{display:flex;align-items:center;gap:12px;margin:16px 0 0}
+  .row label{min-width:78px;font-size:.92rem;color:var(--muted)}
+  input[type=range]{flex:1;accent-color:var(--accent)}
+  input[type=text]{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:7px 10px;
+                   font:inherit;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem;color:var(--ink)}
+  input[type=text]:focus{outline:2px solid var(--accent);outline-offset:1px}
+  input[type=text].erreur{border-color:#d92d20;outline-color:#d92d20}
+  .val{min-width:96px;text-align:right;font-family:ui-monospace,Menlo,Consolas,monospace;
+       font-weight:700;color:var(--accent)}
+  .mesures{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;
+           font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9rem}
+  .mesure{background:#f6f8fb;border-radius:8px;padding:10px;text-align:center}
+  .mesure span{display:block;font-size:.72rem;letter-spacing:.04em;color:var(--muted);
+               font-family:inherit;text-transform:uppercase;margin-bottom:2px}
+  .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;
+         padding:7px 12px;font:inherit;font-size:.88rem;cursor:pointer}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  .retour{display:inline-block;margin:0 0 14px;font-size:.88rem;color:var(--muted);text-decoration:none}
+  .retour:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="retour" href="../../../index.html">← Retour au catalogue</a>
+  <h1>Théorème de la moyenne</h1>
+  <div class="card">
+    <div id="board"></div>
+
+    <div class="row">
+      <label for="fx">f(x)</label>
+      <input type="text" id="fx" value="2+sin(x)" spellcheck="false"
+             placeholder="2+sin(x)   x^2+1   sqrt(x)+1   exp(x/3)">
+      <button id="appliquer">Appliquer</button>
+    </div>
+    <div class="row">
+      <label for="a">a</label>
+      <input type="range" id="a" min="-6" max="6" step="0.05" value="-1">
+      <span class="val" id="aVal">−1,00</span>
+    </div>
+    <div class="row">
+      <label for="b">b</label>
+      <input type="range" id="b" min="-6" max="6" step="0.05" value="4">
+      <span class="val" id="bVal">4,00</span>
+    </div>
+
+    <div class="mesures">
+      <div class="mesure"><span>∫ f</span><b id="mAire">—</b></div>
+      <div class="mesure"><span>moyenne</span><b id="mMoy">—</b></div>
+      <div class="mesure"><span>c</span><b id="mC">—</b></div>
+    </div>
+
+    <div class="btns">
+      <button data-f="2+sin(x)">2+sin(x)</button>
+      <button data-f="x^2+1">x²+1</button>
+      <button data-f="sqrt(x+7)">√(x+7)</button>
+      <button data-f="exp(x/3)">e^(x/3)</button>
+      <button data-f="4-x^2/9">4−x²/9</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var board = JXG.JSXGraph.initBoard('board', {
+    boundingbox: [-2, 4, 5, -0.6], keepaspectratio: false, axis: true,
+    showCopyright: false, showNavigation: false, pan: {enabled: false}, zoom: {enabled: false}
+  });
+
+  var f = function (x) { return 2 + Math.sin(x); };
+  var A = -1, B = 4, MOY = 0, C = null;
+
+  // aire sous la courbe
+  var aire = board.create('curve', [[0], [0]], {
+    strokeWidth: 0, fillColor: '#2563eb', fillOpacity: 0.14, fixed: true, highlight: false
+  });
+
+  // rectangle de meme aire, hauteur = valeur moyenne
+  var rect = board.create('curve', [[0], [0]], {
+    strokeColor: '#c98a06', strokeWidth: 1.6, fillColor: '#c98a06', fillOpacity: 0.12,
+    fixed: true, highlight: false
+  });
+
+  // verticale en c
+  var vert = board.create('segment', [[0, 0], [0, 0]], {
+    strokeColor: '#c98a06', strokeWidth: 1, dash: 2, fixed: true, highlight: false
+  });
+
+  var courbe = board.create('functiongraph', [
+    function (x) { return f(x); },
+    function () { return board.getBoundingBox()[0]; },
+    function () { return board.getBoundingBox()[2]; }
+  ], {strokeColor: '#0f9d58', strokeWidth: 2.2, fixed: true, highlight: false});
+
+  var ptC = board.create('point', [0, 0], {
+    face: 'o', size: 3, fixed: true, withLabel: false, highlight: false,
+    strokeColor: '#c98a06', fillColor: '#fff', strokeWidth: 2, visible: false
+  });
+
+  var elF = document.getElementById('fx'),
+      elA = document.getElementById('a'),
+      elB = document.getElementById('b');
+
+  function fmt(x) {
+    return x.toFixed(2).replace('.', ',').replace('-', '−');
+  }
+
+  // Simpson sur 1000 sous-intervalles
+  function integrale(a, b) {
+    var n = 1000, h = (b - a) / n, s = f(a) + f(b), i;
+    for (i = 1; i < n; i++) {
+      s += (i % 2 ? 4 : 2) * f(a + i * h);
+    }
+    return s * h / 3;
+  }
+
+  // premier c de [a, b] tel que f(c) = moyenne
+  function chercherC(a, b, m) {
+    var n = 2000, h = (b - a) / n, x0 = a, y0 = f(a) - m, i, x1, y1;
+    if (Math.abs(y0) < 1e-12) return a;
+    for (i = 1; i <= n; i++) {
+      x1 = a + i * h; y1 = f(x1) - m;
+      if (y0 === 0 || y0 * y1 < 0) {
+        for (var k = 0; k < 60; k++) {
+          var xm = (x0 + x1) / 2, ym = f(xm) - m;
+          if (y0 * ym <= 0) { x1 = xm; y1 = ym; } else { x0 = xm; y0 = ym; }
+        }
+        return (x0 + x1) / 2;
+      }
+      x0 = x1; y0 = y1;
+    }
+    return null;
+  }
+
+  function echantillonner(a, b, n) {
+    var X = [], Y = [], i;
+    for (i = 0; i <= n; i++) {
+      var x = a + (b - a) * i / n, y = f(x);
+      if (!isFinite(y)) y = 0;
+      X.push(x); Y.push(y);
+    }
+    return {X: X, Y: Y};
+  }
+
+  function render() {
+    A = parseFloat(elA.value);
+    B = parseFloat(elB.value);
+    if (B - A < 0.2) {
+      B = A + 0.2;
+      elB.value = B;
+    }
+    document.getElementById('aVal').textContent = fmt(A);
+    document.getElementById('bVal').textContent = fmt(B);
+
+    var ech = echantillonner(A, B, 400);
+    var haut = 0, bas = 0, i;
+    for (i = 0; i < ech.Y.length; i++) {
+      haut = Math.max(haut, ech.Y[i]);
+      bas = Math.min(bas, ech.Y[i]);
+    }
+    if (!isFinite(haut) || haut <= 0) haut = 1;
+
+    var marge = (B - A) * 0.15;
+    board.setBoundingBox([A - marge, haut * 1.2, B + marge, bas - haut * 0.15], false);
+
+    var I = integrale(A, B);
+    MOY = I / (B - A);
+    C = chercherC(A, B, MOY);
+
+    board.suspendUpdate();
+
+    aire.dataX = [A].concat(ech.X, [B]);
+    aire.dataY = [0].concat(ech.Y, [0]);
+
+    rect.dataX = [A, B, B, A, A];
+    rect.dataY = [0, 0, MOY, MOY, 0];
+
+    if (C === null) {
+      ptC.setAttribute({visible: false});
+      vert.setAttribute({visible: false});
+    } else {
+      ptC.setAttribute({visible: true});
+      ptC.setPosition(JXG.COORDS_BY_USER, [C, MOY]);
+      vert.setAttribute({visible: true});
+      vert.point1.setPosition(JXG.COORDS_BY_USER, [C, 0]);
+      vert.point2.setPosition(JXG.COORDS_BY_USER, [C, MOY]);
+    }
+
+    board.unsuspendUpdate();
+
+    document.getElementById('mAire').textContent = fmt(I);
+    document.getElementById('mMoy').textContent = fmt(MOY);
+    document.getElementById('mC').textContent = C === null ? '—' : fmt(C);
+
+    // f doit rester positive sur [a, b]
+    elF.classList.toggle('erreur', bas < 0);
+  }
+
+  function appliquerFonction() {
+    var texte = elF.value;
+    try {
+      var g = board.jc.snippet(texte, true, 'x', true);
+      var essai = g(1);
+      if (typeof essai !== 'number') throw new Error('pas une fonction');
+      f = function (x) {
+        var y = g(x);
+        return typeof y === 'number' ? y : NaN;
+      };
+      elF.classList.remove('erreur');
+      render();
+    } catch (err) {
+      elF.classList.add('erreur');
+    }
+  }
+
+  elA.addEventListener('input', render);
+  elB.addEventListener('input', render);
+  document.getElementById('appliquer').addEventListener('click', appliquerFonction);
+  elF.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Enter') appliquerFonction();
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('button[data-f]'), function (bt) {
+    bt.addEventListener('click', function () {
+      elF.value = bt.dataset.f;
+      appliquerFonction();
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
