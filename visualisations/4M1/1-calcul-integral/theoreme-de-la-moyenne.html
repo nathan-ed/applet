@@ -29,6 +29,7 @@
   .mesure{background:#f6f8fb;border-radius:8px;padding:10px;text-align:center}
   .mesure span{display:block;font-size:.72rem;letter-spacing:.04em;color:var(--muted);
                font-family:inherit;text-transform:uppercase;margin-bottom:2px}
+  .mesure b{display:block;line-height:1.35}
   .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
   button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;
          padding:7px 12px;font:inherit;font-size:.88rem;cursor:pointer}
@@ -281,7 +282,7 @@
     document.getElementById('mC').textContent =
       C.length === 0 ? '—'
         : C.length === 1 ? '≈ ' + fmt(C[0])
-        : '≈ (' + C.map(fmt).join(' ; ') + ')';
+        : C.map(function (x, j) { return 'c' + INDICES[j] + ' ≈ ' + fmt(x); }).join('   ');
 
     // f doit rester positive sur [a, b]
     elF.classList.toggle('erreur', bas < 0);

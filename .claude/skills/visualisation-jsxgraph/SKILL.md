@@ -60,8 +60,10 @@ Seul `en-ligne` s'affiche : la page ne montre aucune pastille de statut.
     return (Math.abs(x - Math.round(x * 100) / 100) < 5e-13 ? '' : '≈ ') + fmt(x);
   }
   ```
-- **Plusieurs valeurs dans une meme case** : les entourer de parentheses et les
-  separer par `;` — `≈ (0,24 ; 2,90)`. Une seule valeur reste nue.
+- **Plusieurs valeurs dans une meme case** : nommer chacune avec son indice —
+  `c₁ ≈ 0,24   c₂ ≈ 2,90`. Jamais une liste entre parentheses ni separee par des
+  points-virgules seuls : on la lit comme les coordonnees d'un point. Une seule
+  valeur reste nue, l'intitule de la case suffit.
 - **Une seule colonne**, largeur maximale 720 px, la figure en haut.
 - **Lien de retour** en haut de page :
   `<a class="retour" href="../../../index.html">← Retour au catalogue</a>`
