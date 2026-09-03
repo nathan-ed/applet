@@ -124,7 +124,7 @@
   var bA = borne(), bB = borne();
 
   // verticales en c : le theoreme peut fournir plusieurs valeurs
-  var MAXC = 12, cSegs = [], cPts = [], ic;
+  var MAXC = 12, cSegs = [], cPts = [], cNoms = [], ic;
   for (ic = 0; ic < MAXC; ic++) {
     cSegs.push(board.create('segment', [[0, 0], [0, 0]], {
       strokeColor: '#c98a06', strokeWidth: 1, dash: 2, visible: false, fixed: true, highlight: false
@@ -133,7 +133,15 @@
       face: 'o', size: 3, fixed: true, withLabel: false, highlight: false, visible: false,
       strokeColor: '#c98a06', fillColor: '#fff', strokeWidth: 2
     }));
+    cNoms.push(board.create('text', [0, 0, ''], {
+      fontSize: 13, anchorX: 'middle', anchorY: 'top', color: '#c98a06',
+      cssStyle: 'font-weight:700', visible: false, fixed: true, highlight: false
+    }));
   }
+
+  var INDICES = ['\u2081', '\u2082', '\u2083', '\u2084', '\u2085',
+                 '\u2086', '\u2087', '\u2088', '\u2089', '\u2081\u2080',
+                 '\u2081\u2081', '\u2081\u2082'];
 
   var courbe = board.create('functiongraph', [
     function (x) { return f(x); },
@@ -239,18 +247,21 @@
     rect.dataX = [A, B, B, A, A];
     rect.dataY = [0, 0, MOY, MOY, 0];
 
+    var dy = (haut * 1.35 - bas) * 0.03;
+
     for (var j = 0; j < MAXC; j++) {
       var actif = j < C.length;
       cSegs[j].setAttribute({visible: actif});
       cPts[j].setAttribute({visible: actif});
+      cNoms[j].setAttribute({visible: actif});
       if (actif) {
         cSegs[j].point1.setPosition(JXG.COORDS_BY_USER, [C[j], 0]);
         cSegs[j].point2.setPosition(JXG.COORDS_BY_USER, [C[j], MOY]);
         cPts[j].setPosition(JXG.COORDS_BY_USER, [C[j], MOY]);
+        cNoms[j].setText(C.length > 1 ? 'c' + INDICES[j] : 'c');
+        cNoms[j].setCoords(C[j], -dy);
       }
     }
-
-    var dy = (haut * 1.35 - bas) * 0.03;
     [[bA, A, 'a'], [bB, B, 'b']].forEach(function (e) {
       var brn = e[0], x = e[1], nom = e[2], y = f(x);
       if (!isFinite(y)) y = 0;
