@@ -24,6 +24,14 @@
   input[type=text].erreur{border-color:#d92d20;outline-color:#d92d20}
   .val{min-width:96px;text-align:right;font-family:ui-monospace,Menlo,Consolas,monospace;
        font-weight:700;color:var(--accent)}
+  .fc{margin-top:14px;padding:14px 12px;border-radius:8px;background:#f6f8fb;overflow-x:auto;
+      font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.95rem;line-height:1.15}
+  .fc .etage{display:inline-flex;align-items:center;white-space:nowrap}
+  .fc .fr{display:inline-flex;flex-direction:column;text-align:center;margin:0 3px}
+  .fc .fr .n{border-bottom:1.5px solid currentColor;padding:0 7px 1px}
+  .fc .fr .d{padding:2px 7px 0}
+  .fc .valeur{margin-left:10px;color:var(--muted)}
+  .fc .valeur b{color:var(--accent)}
   .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
   button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;
          padding:7px 12px;font:inherit;font-size:.88rem;cursor:pointer}
@@ -66,6 +74,8 @@
       <input type="text" id="cf" spellcheck="false" placeholder="0; 1, 1, 1, 2, 5">
       <button id="appliquerCf">Appliquer</button>
     </div>
+
+    <div class="fc" id="fc"></div>
 
     <div class="btns">
       <button id="play">Animer</button>
@@ -278,16 +288,37 @@
       elN = document.getElementById('nSeeds'),
       elExpr = document.getElementById('expr'),
       elPlay = document.getElementById('play'),
-      elCf = document.getElementById('cf');
+      elCf = document.getElementById('cf'),
+      elFc = document.getElementById('fc');
 
   // tour courant, en virgule fixe, toujours ramene dans [0, 1[
   var tour = modUn(depuisDecimal(CONSTANTES.phi));
+
+  // a0 + 1/(a1 + 1/(a2 + ...)), en fractions empilees
+  var PROFONDEUR = 5;
+
+  function etage(termes, i, fini) {
+    if (i >= termes.length) return fini ? '' : '\u22f1';
+    if (i - 1 === PROFONDEUR) return '\u22f1';
+    var reste = etage(termes, i + 1, fini);
+    if (reste === '') return '<span class="etage">' + termes[i] + '</span>';
+    return '<span class="etage">' + termes[i] + ' +' +
+      '<span class="fr"><span class="n">1</span><span class="d">' + reste + '</span></span>' +
+      '</span>';
+  }
 
   function afficherFractionContinue() {
     var cf = fractionContinue(tour, 20);
     var t = cf.termes.map(String);
     elCf.value = t[0] + "; " + t.slice(1).join(", ") + (cf.fini ? "" : ", …");
     elCf.classList.remove('erreur');
+    var montres = cf.termes.slice(0, PROFONDEUR + 1);
+    var complet = cf.fini && montres.length === cf.termes.length;
+    var v = depuisFractionContinue(montres);
+    elFc.innerHTML = '<span class="etage">' + etage(cf.termes, 0, cf.fini) +
+      '<span class="valeur">' + (complet ? '=' : '≈') + ' ' +
+      '<b>' + v.n + '/' + v.d + '</b> ' + (complet ? '=' : '≈') + ' ' +
+      nombre(v).toFixed(7).replace('.', ',') + '</span></span>';
   }
 
   function appliquerFractionContinue() {

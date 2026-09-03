@@ -115,6 +115,12 @@ boutons de raccourci se contentent de remplir le champ. Bordure rouge
 (`classList.toggle('erreur', …)`) quand l'expression ne se lit pas — aucun
 message d'erreur ecrit.
 
+- **Ecriture mathematique** : quand une notation compacte cache la structure
+  (fraction continue, produit, somme), l'ecrire aussi en clair — fractions
+  empilees en HTML/CSS (`flex-direction:column`, numerateur a
+  `border-bottom`), tronquees a cinq etages et closes par `⋱`. Toujours
+  accompagner l'ecriture affichee de sa valeur (`≈ p/q ≈ 0,6250000`), calculee
+  sur les termes reellement montres et non sur la valeur exacte.
 - **Grandeur calculee** : quand une valeur affichee se laisse inverser (fraction
   continue, coordonnees, coefficients), en faire un champ editable plutot qu'un
   simple affichage — on doit pouvoir la reecrire et l'appliquer, la figure se
