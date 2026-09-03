@@ -106,7 +106,12 @@
       border-bottom: none;
     }
 
-    tbody tr:hover {
+    tbody tr {
+      cursor: pointer;
+    }
+
+    tbody tr:hover,
+    tbody tr:focus-within {
       background: #f1f4ef;
     }
 
@@ -249,7 +254,7 @@
       const items = visibleItems();
       const publicTotal = state.items.filter(publie).length;
       corps.innerHTML = items.map((item) => `
-        <tr>
+        <tr data-path="${item.path}" tabindex="0">
           <td>
             <a href="${item.path}">${item.title}</a>
             ${item.status === "brouillon" ? `<span class="tag brouillon">Brouillon</span>` : ""}
@@ -262,6 +267,27 @@
       liste.style.display = items.length ? "" : "none";
       empty.style.display = items.length ? "none" : "block";
     }
+
+    corps.addEventListener("click", (event) => {
+      if (event.target.closest("a")) {
+        return;
+      }
+      const ligne = event.target.closest("tr[data-path]");
+      if (ligne) {
+        window.location.href = ligne.dataset.path;
+      }
+    });
+
+    corps.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+      const ligne = event.target.closest("tr[data-path]");
+      if (ligne) {
+        event.preventDefault();
+        window.location.href = ligne.dataset.path;
+      }
+    });
 
     selYear.addEventListener("change", () => {
       state.year = selYear.value;

@@ -18,8 +18,14 @@
   .row{display:flex;align-items:center;gap:12px;margin:16px 0 0}
   .row label{min-width:78px;font-size:.92rem;color:var(--muted)}
   input[type=range]{flex:1;accent-color:var(--accent)}
+  input[type=text]{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:7px 10px;
+                   font:inherit;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92rem;color:var(--ink)}
+  input[type=text]:focus{outline:2px solid var(--accent);outline-offset:1px}
+  input[type=text].erreur{border-color:#d92d20;outline-color:#d92d20}
   .val{min-width:96px;text-align:right;font-family:ui-monospace,Menlo,Consolas,monospace;
        font-weight:700;color:var(--accent)}
+  .cf{margin-top:10px;padding:10px 12px;border-radius:8px;background:#f6f8fb;
+      font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86rem;overflow-x:auto;white-space:nowrap}
   .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
   button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;
          padding:7px 12px;font:inherit;font-size:.88rem;cursor:pointer}
@@ -27,10 +33,10 @@
   button.on{background:var(--accent);border-color:var(--accent);color:#fff}
   button.or{border-color:var(--or);color:var(--or);font-weight:700}
   button.or:hover{background:var(--or);color:#fff}
-  .src{margin-top:16px;font-size:.85rem;color:var(--muted);text-align:center}
-  .src a{color:var(--accent)}
   .retour{display:inline-block;margin:0 0 14px;font-size:.88rem;color:var(--muted);text-decoration:none}
   .retour:hover{color:var(--accent)}
+  .src{margin-top:16px;font-size:.85rem;color:var(--muted);text-align:center}
+  .src a{color:var(--accent)}
 </style>
 </head>
 <body>
@@ -50,16 +56,25 @@
       <input type="range" id="nSeeds" min="20" max="800" step="10" value="400">
       <span class="val" id="nVal">400</span>
     </div>
+    <div class="row">
+      <label for="expr">Nombre</label>
+      <input type="text" id="expr" value="phi" spellcheck="false"
+             placeholder="1/7  phi  pi  sqrt(2)  (1+sqrt(5))/2  e">
+      <button id="appliquer">Appliquer</button>
+    </div>
+
+    <div class="cf" id="cf"></div>
 
     <div class="btns">
       <button id="play">Animer</button>
-      <button data-t="0.5">1/2</button>
-      <button data-t="0.3333333333">1/3</button>
-      <button data-t="0.4">2/5</button>
-      <button data-t="0.375">3/8</button>
-      <button data-t="0.6180339887" class="or">φ − 1</button>
-      <button data-t="0.4142135624">√2 − 1</button>
-      <button data-t="0.1415926536">π − 3</button>
+      <button data-e="1/2">1/2</button>
+      <button data-e="1/3">1/3</button>
+      <button data-e="2/5">2/5</button>
+      <button data-e="3/8">3/8</button>
+      <button data-e="phi" class="or">φ</button>
+      <button data-e="sqrt(2)">√2</button>
+      <button data-e="pi">π</button>
+      <button data-e="e">e</button>
     </div>
 
     <p class="src">D'après <a href="https://www.youtube.com/watch?v=sj8Sg8qnjOg" target="_blank" rel="noopener">The
@@ -70,6 +85,150 @@
 <script>
 (function () {
   "use strict";
+
+  // ---------------------------------------------------------------- arithmetique
+  // Fractions exactes sur BigInt : {n, d} avec d > 0 et pgcd(n, d) = 1.
+  // Les seules approximations sont les constantes et les racines, donnees a
+  // 60 chiffres : les 20 premiers termes de la fraction continue restent exacts,
+  // meme pour pi et son quotient partiel 292.
+  var CHIFFRES = 60;
+  var UNITE = BigInt("1" + new Array(CHIFFRES + 1).join("0"));
+
+  var CONSTANTES = {
+    pi:  "3.141592653589793238462643383279502884197169399375105820974944",
+    e:   "2.718281828459045235360287471352662497757247093699959574966968",
+    phi: "1.618033988749894848204586834365638117720309179805762862135449"
+  };
+
+  function pgcd(a, b) {
+    if (a < 0n) a = -a;
+    if (b < 0n) b = -b;
+    while (b) { var r = a % b; a = b; b = r; }
+    return a;
+  }
+
+  function frac(n, d) {
+    if (d === 0n) throw new Error("division par zero");
+    if (d < 0n) { n = -n; d = -d; }
+    var g = pgcd(n, d) || 1n;
+    return {n: n / g, d: d / g};
+  }
+
+  function depuisDecimal(texte) {
+    texte = String(texte);
+    var signe = 1n;
+    if (texte[0] === "-") { signe = -1n; texte = texte.slice(1); }
+    var parts = texte.split(".");
+    var dec = parts[1] || "";
+    var d = BigInt("1" + new Array(dec.length + 1).join("0"));
+    return frac(signe * (BigInt(parts[0] || "0") * d + BigInt(dec || "0")), d);
+  }
+
+  function add(a, b) { return frac(a.n * b.d + b.n * a.d, a.d * b.d); }
+  function sub(a, b) { return frac(a.n * b.d - b.n * a.d, a.d * b.d); }
+  function mul(a, b) { return frac(a.n * b.n, a.d * b.d); }
+  function div(a, b) {
+    if (b.n === 0n) throw new Error("division par zero");
+    return frac(a.n * b.d, a.d * b.n);
+  }
+  function neg(a) { return {n: -a.n, d: a.d}; }
+
+  function isqrt(n) {
+    if (n < 0n) throw new Error("racine d'un nombre negatif");
+    if (n < 2n) return n;
+    var x = n, y = (x + 1n) / 2n;
+    while (y < x) { x = y; y = (x + n / x) / 2n; }
+    return x;
+  }
+
+  // sqrt(n/d) = sqrt(n*d)/d, arrondi a CHIFFRES decimales
+  function racine(a) {
+    var carre = a.n * a.d * UNITE * UNITE;
+    return frac(isqrt(carre), a.d * UNITE);
+  }
+
+  function modUn(a) {
+    var r = a.n % a.d;
+    if (r < 0n) r += a.d;
+    return frac(r, a.d);
+  }
+
+  function nombre(a) {
+    var e = 1000000000000000n;
+    return Number(a.n * e / a.d) / Number(e);
+  }
+
+  // ---------------------------------------------------------------- analyseur
+  // Grammaire : somme -> produit (('+'|'-') produit)*
+  //             produit -> unaire (('*'|'/') unaire)*
+  //             unaire -> '-'? facteur
+  //             facteur -> nombre | constante | 'sqrt' '(' somme ')' | '(' somme ')'
+  function evaluer(source) {
+    var jetons = source.toLowerCase()
+      .replace(/\u03c0/g, "pi").replace(/\u03c6/g, "phi").replace(/\u221a/g, "sqrt")
+      .match(/\d+\.?\d*|[a-z]+|[()+\-*\/]/g);
+    if (!jetons) throw new Error("expression vide");
+    var i = 0;
+
+    function suivant() { return jetons[i]; }
+    function avaler(j) {
+      if (jetons[i] !== j) throw new Error("attendu " + j);
+      i += 1;
+    }
+
+    function facteur() {
+      var j = suivant();
+      if (j === undefined) throw new Error("expression incomplete");
+      if (j === "(") { i += 1; var v = somme(); avaler(")"); return v; }
+      if (/^\d/.test(j)) { i += 1; return depuisDecimal(j); }
+      if (j === "sqrt") { i += 1; avaler("("); var a = somme(); avaler(")"); return racine(a); }
+      if (CONSTANTES[j]) { i += 1; return depuisDecimal(CONSTANTES[j]); }
+      throw new Error("inconnu : " + j);
+    }
+
+    function unaire() {
+      if (suivant() === "-") { i += 1; return neg(unaire()); }
+      if (suivant() === "+") { i += 1; return unaire(); }
+      return facteur();
+    }
+
+    function produit() {
+      var v = unaire();
+      while (suivant() === "*" || suivant() === "/") {
+        var op = jetons[i]; i += 1;
+        v = op === "*" ? mul(v, unaire()) : div(v, unaire());
+      }
+      return v;
+    }
+
+    function somme() {
+      var v = produit();
+      while (suivant() === "+" || suivant() === "-") {
+        var op = jetons[i]; i += 1;
+        v = op === "+" ? add(v, produit()) : sub(v, produit());
+      }
+      return v;
+    }
+
+    var res = somme();
+    if (i !== jetons.length) throw new Error("caractere en trop");
+    return res;
+  }
+
+  // ---------------------------------------------------------------- fraction continue
+  function fractionContinue(a, nb) {
+    var p = a.n, q = a.d, termes = [];
+    for (var k = 0; k < nb && q !== 0n; k++) {
+      var t = p / q;
+      if (p % q !== 0n && p < 0n) t -= 1n;   // partie entiere par defaut
+      termes.push(t);
+      var r = p - t * q;
+      p = q; q = r;
+    }
+    return {termes: termes, fini: q === 0n};
+  }
+
+  // ---------------------------------------------------------------- figure
   var MAXN = 800, TAU = 2 * Math.PI;
 
   var board = JXG.JSXGraph.initBoard('board', {
@@ -91,10 +250,22 @@
 
   var elTurn = document.getElementById('turn'),
       elN = document.getElementById('nSeeds'),
-      elPlay = document.getElementById('play');
+      elExpr = document.getElementById('expr'),
+      elPlay = document.getElementById('play'),
+      elCf = document.getElementById('cf');
 
-  function render() {
-    var t = parseFloat(elTurn.value), n = parseInt(elN.value, 10), i;
+  // tour courant, en virgule fixe, toujours ramene dans [0, 1[
+  var tour = modUn(depuisDecimal(CONSTANTES.phi));
+
+  function afficherFractionContinue() {
+    var cf = fractionContinue(tour, 20);
+    var t = cf.termes.map(String);
+    elCf.textContent = "[" + t[0] + "; " + t.slice(1).join(", ") +
+      (cf.fini ? "]" : ", …]");
+  }
+
+  function dessiner() {
+    var t = nombre(tour), n = parseInt(elN.value, 10), i;
     document.getElementById('turnVal').textContent = t.toFixed(7).replace('.', ',');
     document.getElementById('nVal').textContent = n;
 
@@ -111,10 +282,40 @@
     board.unsuspendUpdate();
   }
 
-  elTurn.addEventListener('input', render);
-  elN.addEventListener('input', render);
-  Array.prototype.forEach.call(document.querySelectorAll('button[data-t]'), function (b) {
-    b.addEventListener('click', function () { elTurn.value = b.dataset.t; render(); });
+  function render() {
+    dessiner();
+    afficherFractionContinue();
+  }
+
+  function fixerTour(v) {
+    tour = modUn(v);
+    elTurn.value = nombre(tour);
+    render();
+  }
+
+  function appliquerExpression() {
+    try {
+      fixerTour(evaluer(elExpr.value));
+      elExpr.classList.remove('erreur');
+    } catch (err) {
+      elExpr.classList.add('erreur');
+    }
+  }
+
+  elTurn.addEventListener('input', function () {
+    tour = depuisDecimal(elTurn.value);
+    render();
+  });
+  elN.addEventListener('input', dessiner);
+  document.getElementById('appliquer').addEventListener('click', appliquerExpression);
+  elExpr.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Enter') appliquerExpression();
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('button[data-e]'), function (b) {
+    b.addEventListener('click', function () {
+      elExpr.value = b.dataset.e;
+      appliquerExpression();
+    });
   });
 
   var timer = null;
@@ -126,9 +327,8 @@
     }
     elPlay.textContent = 'Arrêter'; elPlay.classList.add('on');
     timer = setInterval(function () {
-      var t = parseFloat(elTurn.value) + 0.0004;
-      if (t > 1) t -= 1;
-      elTurn.value = t;
+      tour = modUn(add(tour, {n: 1n, d: 2500n}));
+      elTurn.value = nombre(tour);
       render();
     }, 60);
   });
