@@ -78,9 +78,11 @@ python3 scripts/catalogue.py chemin --annee 4M1 --chapitre "1 Calcul intégral" 
 - Encadrer toute mise a jour de `board.suspendUpdate()` / `board.unsuspendUpdate()`.
 - Cadrage adaptatif : `board.setBoundingBox([x0, y1, x1, y0], false)` calcule
   depuis un echantillonnage de la fonction.
-- Marquer les elements que l'enonce nomme : bornes `a` et `b`, images `f(a)`,
-  `f(b)`, solutions `c` — point + verticale pointillee + `text` avec
-  `text-shadow:0 0 3px #fff` pour rester lisible sur la courbe.
+- Marquer les elements que l'enonce nomme, avec la lettre du cours : bornes `a`
+  et `b`, images `f(a)`, `f(b)`, solutions `c` — point + verticale pointillee +
+  `text` avec `text-shadow:0 0 3px #fff` pour rester lisible sur la courbe.
+  Plusieurs solutions : les indicer `c₁`, `c₂`, … (indices Unicode), et
+  garder la lettre nue quand il n'y en a qu'une.
 - Reglages : `<input type="range">` HTML plutot que les curseurs JSXGraph, valeur
   affichee a droite en chasse fixe.
 - Animation : `setInterval` (~60 ms) pilote par un bouton « Animer » / « Arreter ».
