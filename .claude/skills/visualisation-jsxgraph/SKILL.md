@@ -60,6 +60,8 @@ Seul `en-ligne` s'affiche : la page ne montre aucune pastille de statut.
     return (Math.abs(x - Math.round(x * 100) / 100) < 5e-13 ? '' : '≈ ') + fmt(x);
   }
   ```
+- **Plusieurs valeurs dans une meme case** : les entourer de parentheses et les
+  separer par `;` — `≈ (0,24 ; 2,90)`. Une seule valeur reste nue.
 - **Une seule colonne**, largeur maximale 720 px, la figure en haut.
 - **Lien de retour** en haut de page :
   `<a class="retour" href="../../../index.html">← Retour au catalogue</a>`

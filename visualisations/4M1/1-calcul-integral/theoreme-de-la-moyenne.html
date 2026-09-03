@@ -279,7 +279,9 @@
     document.getElementById('mAire').textContent = approche(I);
     document.getElementById('mMoy').textContent = approche(MOY);
     document.getElementById('mC').textContent =
-      C.length === 0 ? '—' : '≈ ' + C.map(fmt).join(' ; ');
+      C.length === 0 ? '—'
+        : C.length === 1 ? '≈ ' + fmt(C[0])
+        : '≈ (' + C.map(fmt).join(' ; ') + ')';
 
     // f doit rester positive sur [a, b]
     elF.classList.toggle('erreur', bas < 0);
