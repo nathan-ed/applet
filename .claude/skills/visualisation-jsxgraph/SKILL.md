@@ -40,6 +40,8 @@ Statuts possibles :
 - **Francais sans anglicismes.** « Animer / Arreter », pas « Play / Pause ».
   Virgule decimale.
 - **Une seule colonne**, largeur maximale 720 px, la figure en haut.
+- **Lien de retour** en haut de page : `<a class="retour" href="../../../index.html">← Retour au catalogue</a>`
+  (trois niveaux depuis `visualisations/<classe>/<chapitre>/`). Il est deja dans le gabarit.
 - **Source en une ligne** en bas de carte quand la visualisation vient d'une video
   ou d'un article : `D'après <a href="...">Titre</a>, Auteur.` Sinon, pas de ligne.
 
