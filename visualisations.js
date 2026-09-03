@@ -74,7 +74,7 @@ window.CATALOGUE = [
     "title": "Théorème de la moyenne",
     "category": "4M1",
     "chapter": "1 Calcul intégral",
-    "status": "brouillon",
+    "status": "en-ligne",
     "path": "visualisations/4M1/1-calcul-integral/theoreme-de-la-moyenne.html"
   }
 ];
