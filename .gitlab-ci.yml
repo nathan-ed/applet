@@ -1,0 +1,15 @@
+# Publication du catalogue sur GitLab Pages (forge.apps.education.fr).
+# Le site est a la racine du depot ; on le recopie dans public/.
+pages:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - mkdir -p public
+    - cp index.html visualisations.json public/
+    - cp -r visualisations public/
+    - test -f .nojekyll && cp .nojekyll public/ || true
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

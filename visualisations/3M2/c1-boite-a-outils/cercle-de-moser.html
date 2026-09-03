@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le cercle de Moser — 1, 2, 4, 8, 16, … 31 ?</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#ffffff; --ink:#1f2933; --muted:#6b7785;
+    --accent:#2563eb; --accent-soft:#e8f0fe; --warn:#d92d20; --warn-soft:#fdeceb;
+    --ok:#0f9d58; --line:#dde3ea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px 16px 48px;background:var(--bg);color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.5}
+  .wrap{max-width:1180px;margin:0 auto}
+  h1{font-size:1.7rem;margin:0 0 6px;text-align:center}
+  .sub{text-align:center;color:var(--muted);margin:0 0 22px}
+  .grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,0.9fr);gap:20px;align-items:start}
+  @media (max-width:960px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;
+        box-shadow:0 1px 3px rgba(16,24,40,.06)}
+  .stage{position:relative;width:100%;max-width:640px;margin:0 auto;aspect-ratio:1/1}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:50%}
+  #bg{background:#fff}
+  #fg{cursor:grab}
+  #fg.dragging{cursor:grabbing}
+  .row{display:flex;align-items:center;gap:10px;margin:14px 0}
+  .row label{min-width:132px;font-weight:600;font-size:.92rem}
+  input[type=range]{flex:1;accent-color:var(--accent)}
+  .val{min-width:56px;text-align:right;font-variant-numeric:tabular-nums;color:var(--accent);font-weight:700}
+  button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;
+         padding:8px 12px;font:inherit;font-size:.88rem;cursor:pointer;transition:.15s}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btns{display:flex;flex-wrap:wrap;gap:8px}
+  .checks{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:.9rem;color:var(--muted)}
+  .checks label{display:flex;align-items:center;gap:6px;cursor:pointer}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 2px}
+  .stat{background:var(--accent-soft);border-radius:10px;padding:10px;text-align:center}
+  .stat .k{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .stat .v{font-size:1.55rem;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+  .stat.bad{background:var(--warn-soft)} .stat.bad .v{color:var(--warn)}
+  .verdict{margin-top:12px;padding:12px 14px;border-radius:10px;font-size:.93rem;border-left:4px solid}
+  .verdict.ok{background:#eaf7ef;border-color:var(--ok)}
+  .verdict.bad{background:var(--warn-soft);border-color:var(--warn)}
+  table{border-collapse:collapse;width:100%;font-size:.87rem;font-variant-numeric:tabular-nums}
+  th,td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:center}
+  th{color:var(--muted);font-weight:600}
+  tr.diff td.reg{color:var(--warn);font-weight:700}
+  tr.cur{background:var(--accent-soft)}
+  .kbd{font-family:ui-monospace,Menlo,Consolas,monospace;background:#eef1f5;border-radius:4px;padding:1px 5px}
+  .note{font-size:.86rem;color:var(--muted);margin-top:10px}
+  h2{font-size:1rem;margin:0 0 10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .formula{text-align:center;font-size:1.02rem;margin:6px 0 14px}
+  .formula b{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Le cercle de Moser</h1>
+  <p class="sub">On place <em>n</em> points sur un cercle, on trace toutes les cordes : combien de régions ?</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="stage">
+        <canvas id="bg"></canvas>
+        <canvas id="fg"></canvas>
+      </div>
+      <div class="note" style="text-align:center">
+        Glissez les points sur le cercle pour les déplacer.
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="row">
+          <label for="nSlider">Nombre de points</label>
+          <input type="range" id="nSlider" min="3" max="12" step="1" value="6">
+          <span class="val" id="nVal">6</span>
+        </div>
+        <div class="row">
+          <label for="epsSlider">Perturbation</label>
+          <input type="range" id="epsSlider" min="0" max="100" step="1" value="0">
+          <span class="val" id="epsVal">0 %</span>
+        </div>
+        <div class="btns">
+          <button id="btnReg" class="on">Points réguliers</button>
+          <button id="btnGen">Position générale</button>
+          <button id="btnRand">Aléatoire</button>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" id="ckColor" checked> Colorier les régions</label>
+          <label><input type="checkbox" id="ckMulti" checked> Points multiples</label>
+          <label><input type="checkbox" id="ckLoupe"> Loupe</label>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2>Comptage</h2>
+        <div class="stats">
+          <div class="stat"><div class="k">Régions</div><div class="v" id="sRegions">30</div></div>
+          <div class="stat"><div class="k">Sommets</div><div class="v" id="sV">19</div></div>
+          <div class="stat"><div class="k">Arêtes</div><div class="v" id="sE">48</div></div>
+        </div>
+        <div class="formula">
+          Position générale : <span id="fTxt">C(6,4) + C(6,2) + 1</span> = <b id="fVal">31</b>
+        </div>
+        <div class="verdict" id="verdict"></div>
+        <div class="note">
+          Comptage exact par la formule d'Euler <span class="kbd">S − A + F = 2</span>,
+          appliquée au graphe planaire formé par le cercle, les cordes et leurs points d'intersection.
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2>Régulier contre général</h2>
+        <table id="tbl"><thead><tr><th>n</th><th>Position générale</th><th>Points réguliers</th><th>Écart</th></tr></thead><tbody></tbody></table>
+        <div class="note">
+          Pour <em>n</em> impair, aucune coïncidence : les deux comptages sont égaux.
+          Les écarts n'apparaissent que pour <em>n</em> pair, quand plusieurs diagonales se croisent au même point.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+const NMIN=3, NMAX=12, MERGE=1e-9;
+const JIT=[0.62,-0.91,0.28,0.83,-0.47,0.15,-0.74,0.96,-0.33,0.51,-0.18,0.69];
+
+let n=6, eps=0, mode="reg";
+let angles=[];
+let custom=null;          // décalages aléatoires courants pour le mode "général"
+let dragIdx=-1, dragging=false;
+
+const bg=document.getElementById("bg"), fg=document.getElementById("fg");
+const bctx=bg.getContext("2d"), fctx=fg.getContext("2d");
+const off=document.createElement("canvas"), octx=off.getContext("2d");
+const loupe=document.createElement("canvas"), lctx=loupe.getContext("2d");
+
+/* ---------- géométrie ---------- */
+function regularAngles(k){
+  const a=[]; for(let i=0;i<k;i++) a.push(-Math.PI/2 + 2*Math.PI*i/k); return a;
+}
+function buildAngles(){
+  const base=regularAngles(n);
+  if(mode==="free") return angles;
+  const amp=eps*0.35*(2*Math.PI/n);     // au max, 35 % d'un secteur : jamais de points confondus
+  return base.map((a,i)=>a+amp*(custom?custom[i]:JIT[i%JIT.length]));
+}
+
+function geometry(ang){
+  const k=ang.length;
+  const P=ang.map(a=>[Math.cos(a),Math.sin(a)]);
+  const chords=[];
+  for(let i=0;i<k;i++) for(let j=i+1;j<k;j++) chords.push({i,j,a:P[i],b:P[j],cl:new Set()});
+  // intersections strictement intérieures
+  const raw=[];
+  for(let c=0;c<chords.length;c++){
+    const A=chords[c];
+    for(let d=c+1;d<chords.length;d++){
+      const B=chords[d];
+      if(A.i===B.i||A.i===B.j||A.j===B.i||A.j===B.j) continue;
+      const r=[A.b[0]-A.a[0],A.b[1]-A.a[1]], s=[B.b[0]-B.a[0],B.b[1]-B.a[1]];
+      const den=r[0]*s[1]-r[1]*s[0];
+      if(Math.abs(den)<1e-14) continue;
+      const qp=[B.a[0]-A.a[0],B.a[1]-A.a[1]];
+      const t=(qp[0]*s[1]-qp[1]*s[0])/den, u=(qp[0]*r[1]-qp[1]*r[0])/den;
+      if(t<=1e-12||t>=1-1e-12||u<=1e-12||u>=1-1e-12) continue;
+      raw.push({x:A.a[0]+t*r[0], y:A.a[1]+t*r[1], c, d});
+    }
+  }
+  // fusion des intersections confondues
+  const clusters=[];
+  for(const p of raw){
+    let hit=-1;
+    for(let q=0;q<clusters.length;q++){
+      const C=clusters[q];
+      if(Math.abs(C.x-p.x)<MERGE && Math.abs(C.y-p.y)<MERGE){hit=q;break;}
+    }
+    if(hit<0){ clusters.push({x:p.x,y:p.y,chords:new Set([p.c,p.d])}); hit=clusters.length-1; }
+    else { clusters[hit].chords.add(p.c); clusters[hit].chords.add(p.d); }
+    chords[p.c].cl.add(hit); chords[p.d].cl.add(hit);
+  }
+  const m=clusters.length;
+  const V=k+m;
+  let E=k;                                   // les k arcs de cercle
+  for(const ch of chords) E+=1+ch.cl.size;   // chaque corde coupée en (pts+1) arêtes
+  const R=E-V+1;                             // Euler : F = E - V + 2, moins la face extérieure
+  const multi=clusters.filter(c=>c.chords.size>=3);
+  return {P,chords,clusters,multi,V,E,R};
+}
+const C=(a,b)=>{let r=1;for(let i=0;i<b;i++) r=r*(a-i)/(i+1);return Math.round(r);};
+const formula=k=>C(k,4)+C(k,2)+1;
+
+/* ---------- coloriage des régions (raster) ---------- */
+// Dans le disque, chaque corde sépare complètement le disque : une région est
+// donc caractérisée par le vecteur des signes par rapport aux droites des cordes.
+function raster(ctx,size,cx,cy,scale,G){
+  const img=ctx.createImageData(size,size), D=img.data;
+  const L=G.chords.length;
+  const dx=new Float64Array(L), dy=new Float64Array(L), cc=new Float64Array(L);
+  for(let i=0;i<L;i++){
+    const ch=G.chords[i];
+    dx[i]=ch.b[0]-ch.a[0]; dy[i]=ch.b[1]-ch.a[1];
+    cc[i]=-(ch.a[0]*dy[i]-ch.a[1]*dx[i]);
+  }
+  const inv=2*scale/size;
+  for(let py=0;py<size;py++){
+    const y=cy+scale-(py+0.5)*inv;
+    for(let px=0;px<size;px++){
+      const x=cx-scale+(px+0.5)*inv;
+      const o=(py*size+px)<<2;
+      if(x*x+y*y>1){ D[o+3]=0; continue; }
+      let h=2166136261;
+      for(let i=0;i<L;i++){
+        const v=x*dy[i]-y*dx[i]+cc[i];
+        h=Math.imul(h^(v>0?1:2),16777619);
+      }
+      const hu=(h>>>0);
+      const hue=hu%360, sat=42+(hu>>>9)%22, lig=76+(hu>>>17)%12;
+      const rgb=hsl(hue,sat,lig);
+      D[o]=rgb[0]; D[o+1]=rgb[1]; D[o+2]=rgb[2]; D[o+3]=255;
+    }
+  }
+  ctx.putImageData(img,0,0);
+}
+function hsl(h,s,l){
+  s/=100; l/=100;
+  const c=(1-Math.abs(2*l-1))*s, x=c*(1-Math.abs((h/60)%2-1)), m=l-c/2;
+  let r,g,b;
+  if(h<60){r=c;g=x;b=0;} else if(h<120){r=x;g=c;b=0;} else if(h<180){r=0;g=c;b=x;}
+  else if(h<240){r=0;g=x;b=c;} else if(h<300){r=x;g=0;b=c;} else {r=c;g=0;b=x;}
+  return [Math.round((r+m)*255),Math.round((g+m)*255),Math.round((b+m)*255)];
+}
+
+/* ---------- rendu ---------- */
+let G=null;
+function sizeCanvases(){
+  const rect=fg.getBoundingClientRect();
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  fg.width=Math.round(rect.width*dpr); fg.height=Math.round(rect.height*dpr);
+  fctx.setTransform(dpr,0,0,dpr,0,0);
+  bg.width=bg.height=Math.round(rect.width);
+  draw();
+}
+function toPx(p,w){ const R=w/2-16; return [w/2+p[0]*R, w/2-p[1]*R]; }
+
+function draw(){
+  const w=fg.getBoundingClientRect().width, R=w/2-16;
+  const q=dragging?260:Math.min(700,Math.round(w*1.1));
+
+  // fond : régions coloriées
+  bctx.setTransform(1,0,0,1,0,0);
+  bctx.clearRect(0,0,bg.width,bg.height);
+  if(document.getElementById("ckColor").checked){
+    off.width=off.height=q;
+    raster(octx,q,0,0,1,G);
+    bctx.imageSmoothingEnabled=true;
+    const s=bg.width, pad=16*(s/w), r=s/2-pad;
+    bctx.drawImage(off,s/2-r,s/2-r,2*r,2*r);
+  }
+
+  fctx.clearRect(0,0,w,w);
+  // cercle
+  fctx.lineWidth=2; fctx.strokeStyle="#1f2933";
+  fctx.beginPath(); fctx.arc(w/2,w/2,R,0,2*Math.PI); fctx.stroke();
+  // cordes
+  fctx.lineWidth=1.1; fctx.strokeStyle="rgba(31,41,51,.62)";
+  fctx.beginPath();
+  for(const ch of G.chords){
+    const A=toPx(ch.a,w), B=toPx(ch.b,w);
+    fctx.moveTo(A[0],A[1]); fctx.lineTo(B[0],B[1]);
+  }
+  fctx.stroke();
+  // intersections
+  const showMulti=document.getElementById("ckMulti").checked;
+  fctx.fillStyle="rgba(31,41,51,.55)";
+  for(const c of G.clusters){
+    if(showMulti && c.chords.size>=3) continue;
+    const p=toPx([c.x,c.y],w);
+    fctx.beginPath(); fctx.arc(p[0],p[1],2,0,2*Math.PI); fctx.fill();
+  }
+  if(showMulti){
+    for(const c of G.multi){
+      const p=toPx([c.x,c.y],w);
+      fctx.beginPath(); fctx.arc(p[0],p[1],9,0,2*Math.PI);
+      fctx.fillStyle="rgba(217,45,32,.18)"; fctx.fill();
+      fctx.beginPath(); fctx.arc(p[0],p[1],4.5,0,2*Math.PI);
+      fctx.fillStyle="#d92d20"; fctx.fill();
+    }
+  }
+  // sommets
+  for(let i=0;i<G.P.length;i++){
+    const p=toPx(G.P[i],w);
+    fctx.beginPath(); fctx.arc(p[0],p[1],i===dragIdx?9:7,0,2*Math.PI);
+    fctx.fillStyle=i===dragIdx?"#1d4ed8":"#2563eb"; fctx.fill();
+    fctx.lineWidth=2; fctx.strokeStyle="#fff"; fctx.stroke();
+  }
+  if(document.getElementById("ckLoupe").checked) drawLoupe(w);
+}
+
+function drawLoupe(w){
+  const target=G.multi.length?G.multi[0]:densest();
+  if(!target) return;
+  const LS=190, zoom=Math.max(6,Math.min(400,0.9/Math.max(spread(target),0.0025)));
+  loupe.width=loupe.height=LS;
+  raster(lctx,LS,target.x,target.y,1/zoom,G);
+  const cxp=w-LS/2-14, cyp=w-LS/2-14, rr=LS/2;
+  fctx.save();
+  fctx.beginPath(); fctx.arc(cxp,cyp,rr,0,2*Math.PI); fctx.clip();
+  fctx.fillStyle="#fff"; fctx.fillRect(cxp-rr,cyp-rr,LS,LS);
+  if(document.getElementById("ckColor").checked) fctx.drawImage(loupe,cxp-rr,cyp-rr);
+  // cordes dans la loupe
+  fctx.lineWidth=1.2; fctx.strokeStyle="rgba(31,41,51,.75)";
+  const map=p=>[cxp+(p[0]-target.x)*zoom*rr, cyp-(p[1]-target.y)*zoom*rr];
+  fctx.beginPath();
+  for(const ch of G.chords){ const A=map(ch.a),B=map(ch.b); fctx.moveTo(A[0],A[1]); fctx.lineTo(B[0],B[1]); }
+  fctx.stroke();
+  for(const c of G.clusters){
+    const p=map([c.x,c.y]);
+    fctx.beginPath(); fctx.arc(p[0],p[1],3.5,0,2*Math.PI);
+    fctx.fillStyle=c.chords.size>=3?"#d92d20":"rgba(31,41,51,.6)"; fctx.fill();
+  }
+  fctx.restore();
+  fctx.beginPath(); fctx.arc(cxp,cyp,rr,0,2*Math.PI);
+  fctx.lineWidth=2.5; fctx.strokeStyle="#2563eb"; fctx.stroke();
+  fctx.fillStyle="#2563eb"; fctx.font="600 12px system-ui,sans-serif"; fctx.textAlign="center";
+  fctx.fillText("zoom ×"+Math.round(zoom), cxp, cyp+rr-10);
+}
+// point d'intersection le plus « entouré » : sert de cible à la loupe hors dégénérescence
+function densest(){
+  let best=null,bd=Infinity;
+  for(const a of G.clusters){
+    for(const b of G.clusters){
+      if(a===b) continue;
+      const d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d<bd){bd=d;best=a;}
+    }
+  }
+  return best||G.clusters[0]||null;
+}
+function spread(t){
+  let d=Infinity;
+  for(const c of G.clusters){
+    if(c===t) continue;
+    d=Math.min(d,Math.hypot(c.x-t.x,c.y-t.y));
+  }
+  return isFinite(d)?d:0.5;
+}
+
+/* ---------- interface ---------- */
+function refresh(){
+  angles=buildAngles();
+  G=geometry(angles);
+  const f=formula(n);
+  document.getElementById("sRegions").textContent=G.R;
+  document.getElementById("sV").textContent=G.V;
+  document.getElementById("sE").textContent=G.E;
+  document.getElementById("fTxt").textContent="C("+n+",4) + C("+n+",2) + 1";
+  document.getElementById("fVal").textContent=f;
+  const box=document.getElementById("sRegions").parentElement;
+  box.classList.toggle("bad",G.R<f);
+  const v=document.getElementById("verdict");
+  if(G.R<f){
+    v.className="verdict bad";
+    v.innerHTML="<b>"+G.R+" régions seulement</b> au lieu de "+f+" : "+G.multi.length+
+      " point"+(G.multi.length>1?"s":"")+" multiple"+(G.multi.length>1?"s":"")+
+      " (marqué"+(G.multi.length>1?"s":"")+" en rouge). Les régions manquantes ont été écrasées.";
+  }else{
+    v.className="verdict ok";
+    v.innerHTML="<b>"+G.R+" régions</b> : les cordes sont en position générale, jamais trois concourantes. "+
+      "Le maximum "+f+" est atteint.";
+  }
+  highlightTable();
+  draw();
+}
+
+function buildTable(){
+  const tb=document.querySelector("#tbl tbody");
+  let html="";
+  for(let k=NMIN;k<=NMAX;k++){
+    const g=formula(k), r=geometry(regularAngles(k)).R;
+    html+='<tr data-n="'+k+'" class="'+(g!==r?"diff":"")+'"><td>'+k+"</td><td>"+g+
+          '</td><td class="reg">'+r+"</td><td>"+(g===r?"—":"−"+(g-r))+"</td></tr>";
+  }
+  tb.innerHTML=html;
+}
+function highlightTable(){
+  document.querySelectorAll("#tbl tbody tr").forEach(tr=>{
+    tr.classList.toggle("cur",+tr.dataset.n===n);
+  });
+}
+
+// met en surbrillance le bouton actif ; "" = aucun (points deplaces a la main)
+function setActive(id){
+  ["btnReg","btnGen","btnRand"].forEach(b=>
+    document.getElementById(b).classList.toggle("on",b===id));
+}
+function setEps(v){
+  eps=v;
+  document.getElementById("epsSlider").value=Math.round(v*100);
+  document.getElementById("epsVal").textContent=Math.round(v*100)+" %";
+}
+
+// contrôles
+document.getElementById("nSlider").addEventListener("input",e=>{
+  n=+e.target.value; document.getElementById("nVal").textContent=n;
+  mode="reg"; setActive(eps===0?"btnReg":(custom?"btnRand":"btnGen"));
+  refresh();
+});
+document.getElementById("epsSlider").addEventListener("input",e=>{
+  setEps(+e.target.value/100);
+  mode="reg"; setActive(eps===0?"btnReg":(custom?"btnRand":"btnGen"));
+  refresh();
+});
+document.getElementById("btnReg").addEventListener("click",()=>{
+  setEps(0); custom=null; mode="reg"; setActive("btnReg"); refresh();
+});
+document.getElementById("btnGen").addEventListener("click",()=>{
+  setEps(0.6); custom=null; mode="reg"; setActive("btnGen"); refresh();
+});
+document.getElementById("btnRand").addEventListener("click",()=>{
+  custom=Array.from({length:NMAX},()=>Math.random()*2-1);
+  if(eps<0.2) setEps(0.7);
+  mode="reg"; setActive("btnRand"); refresh();
+});
+["ckColor","ckMulti","ckLoupe"].forEach(id=>
+  document.getElementById(id).addEventListener("change",draw));
+
+// glisser-déposer des points
+function pos(ev){
+  const r=fg.getBoundingClientRect();
+  const t=ev.touches?ev.touches[0]:ev;
+  const w=r.width, R=w/2-16;
+  return [ (t.clientX-r.left-w/2)/R, -(t.clientY-r.top-w/2)/R ];
+}
+function down(ev){
+  const p=pos(ev);
+  let best=-1,bd=0.09;
+  for(let i=0;i<G.P.length;i++){
+    const d=Math.hypot(G.P[i][0]-p[0],G.P[i][1]-p[1]);
+    if(d<bd){bd=d;best=i;}
+  }
+  if(best>=0){
+    dragIdx=best; dragging=true; mode="free"; setActive("");
+    fg.classList.add("dragging"); ev.preventDefault(); draw();
+  }
+}
+function move(ev){
+  if(!dragging) return;
+  const p=pos(ev);
+  if(p[0]===0&&p[1]===0) return;
+  angles[dragIdx]=Math.atan2(p[1],p[0]);
+  G=geometry(angles);
+  refreshStatsOnly();
+  draw();
+  ev.preventDefault();
+}
+function up(){
+  if(!dragging) return;
+  dragging=false; dragIdx=-1; fg.classList.remove("dragging");
+  refreshStatsOnly(); draw();
+}
+function refreshStatsOnly(){
+  const f=formula(n);
+  document.getElementById("sRegions").textContent=G.R;
+  document.getElementById("sV").textContent=G.V;
+  document.getElementById("sE").textContent=G.E;
+  const box=document.getElementById("sRegions").parentElement;
+  box.classList.toggle("bad",G.R<f);
+  const v=document.getElementById("verdict");
+  if(G.R<f){
+    v.className="verdict bad";
+    v.innerHTML="<b>"+G.R+" régions seulement</b> au lieu de "+f+" : "+G.multi.length+
+      " point"+(G.multi.length>1?"s":"")+" multiple"+(G.multi.length>1?"s":"")+".";
+  }else{
+    v.className="verdict ok";
+    v.innerHTML="<b>"+G.R+" régions</b> : position générale, le maximum "+f+" est atteint.";
+  }
+}
+fg.addEventListener("mousedown",down);
+window.addEventListener("mousemove",move);
+window.addEventListener("mouseup",up);
+fg.addEventListener("touchstart",down,{passive:false});
+window.addEventListener("touchmove",move,{passive:false});
+window.addEventListener("touchend",up);
+window.addEventListener("resize",sizeCanvases);
+
+buildTable();
+angles=buildAngles();
+G=geometry(angles);
+sizeCanvases();
+refresh();
+})();
+</script>
+</body>
+</html>

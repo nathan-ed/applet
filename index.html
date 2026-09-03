@@ -157,9 +157,31 @@
       color: #244466;
     }
 
-    .pret {
+    .pret,
+    .en-ligne {
       background: var(--ready-bg);
       color: var(--ready-text);
+    }
+
+    .chapter {
+      background: #f0ece4;
+      color: #5a4a33;
+    }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .filter-row .label {
+      min-width: 84px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .brouillon {
@@ -216,7 +238,7 @@
     <div class="wrap top">
       <div>
         <h1>Visualisations</h1>
-        <p class="subtitle">Catalogue par niveau avec statut de publication.</p>
+        <p class="subtitle">Catalogue par classe et par chapitre.</p>
       </div>
       <div class="count" id="count"></div>
     </div>
@@ -224,14 +246,9 @@
 
   <main class="wrap">
     <section class="filters" aria-label="Filtres">
-      <button class="active" type="button" data-filter-group="category" data-filter-value="all">Tous</button>
-      <button type="button" data-filter-group="category" data-filter-value="1M">1M</button>
-      <button type="button" data-filter-group="category" data-filter-value="2M">2M</button>
-      <button type="button" data-filter-group="category" data-filter-value="3M">3M</button>
-      <button type="button" data-filter-group="category" data-filter-value="4M">4M</button>
-      <button type="button" data-filter-group="status" data-filter-value="all">Tous statuts</button>
-      <button type="button" data-filter-group="status" data-filter-value="pret">Prêt</button>
-      <button type="button" data-filter-group="status" data-filter-value="brouillon">Brouillon</button>
+      <div class="filter-row"><span class="label">Classe</span><span id="fYear"></span></div>
+      <div class="filter-row"><span class="label">Chapitre</span><span id="fChapter"></span></div>
+      <div class="filter-row"><span class="label">Statut</span><span id="fStatus"></span></div>
     </section>
 
     <section class="grid" id="grid" aria-live="polite"></section>
@@ -240,13 +257,15 @@
 
   <script>
     const state = {
-      category: "all",
+      year: "all",
+      chapter: "all",
       status: "all",
       items: []
     };
 
     const labels = {
-      pret: "Prêt",
+      "en-ligne": "En ligne",
+      pret: "En ligne",
       brouillon: "Brouillon"
     };
 
@@ -254,21 +273,60 @@
     const count = document.querySelector("#count");
     const empty = document.querySelector("#empty");
 
+    const publie = (item) => item.status !== "non-publie";
+
     function visibleItems() {
-      return state.items.filter((item) => item.status !== "non-publie").filter((item) => {
-        const categoryOk = state.category === "all" || item.category === state.category;
-        const statusOk = state.status === "all" || item.status === state.status;
-        return categoryOk && statusOk;
+      return state.items.filter(publie).filter((item) => {
+        const yearOk = state.year === "all" || item.category === state.year;
+        const chapterOk = state.chapter === "all" || (item.chapter || "") === state.chapter;
+        const statusOk = state.status === "all" || (labels[item.status] || item.status) === state.status;
+        return yearOk && chapterOk && statusOk;
       });
+    }
+
+    function buildFilters(group, container, values) {
+      const all = ["all", ...values];
+      container.innerHTML = all.map((value) => `
+        <button type="button" class="${value === state[group] ? "active" : ""}"
+                data-filter-group="${group}" data-filter-value="${value}">
+          ${value === "all" ? "Tous" : value}
+        </button>
+      `).join("");
+
+      container.querySelectorAll("button").forEach((button) => {
+        button.addEventListener("click", () => {
+          state[group] = button.dataset.filterValue;
+          if (group === "year") {
+            state.chapter = "all";
+          }
+          refresh();
+        });
+      });
+    }
+
+    function refresh() {
+      const items = state.items.filter(publie);
+      const years = [...new Set(items.map((item) => item.category))].sort();
+      const chapters = [...new Set(items
+        .filter((item) => state.year === "all" || item.category === state.year)
+        .map((item) => item.chapter)
+        .filter(Boolean))].sort((a, b) => a.localeCompare(b, "fr"));
+      const statuses = [...new Set(items.map((item) => labels[item.status] || item.status))].sort();
+
+      buildFilters("year", document.querySelector("#fYear"), years);
+      buildFilters("chapter", document.querySelector("#fChapter"), chapters);
+      buildFilters("status", document.querySelector("#fStatus"), statuses);
+      render();
     }
 
     function render() {
       const items = visibleItems();
-      const publicTotal = state.items.filter((item) => item.status !== "non-publie").length;
+      const publicTotal = state.items.filter(publie).length;
       grid.innerHTML = items.map((item) => `
         <a class="card" href="${item.path}">
           <div class="meta">
             <span class="tag category">${item.category}</span>
+            ${item.chapter ? `<span class="tag chapter">${item.chapter}</span>` : ""}
             <span class="tag ${item.status}">${labels[item.status] || item.status}</span>
           </div>
           <h2>${item.title}</h2>
@@ -280,19 +338,6 @@
       empty.style.display = items.length ? "none" : "block";
     }
 
-    document.querySelectorAll("button[data-filter-group]").forEach((button) => {
-      button.addEventListener("click", () => {
-        const group = button.dataset.filterGroup;
-        state[group] = button.dataset.filterValue;
-
-        document.querySelectorAll(`button[data-filter-group="${group}"]`).forEach((peer) => {
-          peer.classList.toggle("active", peer === button);
-        });
-
-        render();
-      });
-    });
-
     fetch("visualisations.json")
       .then((response) => {
         if (!response.ok) {
@@ -302,9 +347,11 @@
       })
       .then((items) => {
         state.items = items.sort((a, b) => {
-          return a.category.localeCompare(b.category) || a.title.localeCompare(b.title);
+          return a.category.localeCompare(b.category)
+            || (a.chapter || "").localeCompare(b.chapter || "", "fr")
+            || a.title.localeCompare(b.title, "fr");
         });
-        render();
+        refresh();
       })
       .catch((error) => {
         grid.innerHTML = "";

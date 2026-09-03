@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le nombre d'or</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsxgraph@1.9.2/distrib/jsxgraph.css">
+<script src="https://cdn.jsdelivr.net/npm/jsxgraph@1.9.2/distrib/jsxgraphcore.js"></script>
+<style>
+  :root{--bg:#f4f6f9;--card:#fff;--ink:#1f2933;--muted:#6b7785;--accent:#2563eb;--line:#dde3ea;--or:#c98a06}
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px 16px 40px;background:var(--bg);color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.5}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-size:1.5rem;margin:0 0 18px;text-align:center;font-weight:600}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+  #board{width:100%;aspect-ratio:1/1;border-radius:10px;border:1px solid var(--line);background:#fff;touch-action:none}
+  .row{display:flex;align-items:center;gap:12px;margin:16px 0 0}
+  .row label{min-width:78px;font-size:.92rem;color:var(--muted)}
+  input[type=range]{flex:1;accent-color:var(--accent)}
+  .val{min-width:96px;text-align:right;font-family:ui-monospace,Menlo,Consolas,monospace;
+       font-weight:700;color:var(--accent)}
+  .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;
+         padding:7px 12px;font:inherit;font-size:.88rem;cursor:pointer}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.or{border-color:var(--or);color:var(--or);font-weight:700}
+  button.or:hover{background:var(--or);color:#fff}
+  .src{margin-top:16px;font-size:.85rem;color:var(--muted);text-align:center}
+  .src a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Le nombre d'or</h1>
+  <div class="card">
+    <div id="board"></div>
+
+    <div class="row">
+      <label for="turn">Tour</label>
+      <input type="range" id="turn" min="0" max="1" step="0.0000005" value="0.6180339887">
+      <span class="val" id="turnVal">0,6180340</span>
+    </div>
+    <div class="row">
+      <label for="nSeeds">Graines</label>
+      <input type="range" id="nSeeds" min="20" max="800" step="10" value="400">
+      <span class="val" id="nVal">400</span>
+    </div>
+
+    <div class="btns">
+      <button id="play">Animer</button>
+      <button data-t="0.5">1/2</button>
+      <button data-t="0.3333333333">1/3</button>
+      <button data-t="0.4">2/5</button>
+      <button data-t="0.375">3/8</button>
+      <button data-t="0.6180339887" class="or">φ − 1</button>
+      <button data-t="0.4142135624">√2 − 1</button>
+      <button data-t="0.1415926536">π − 3</button>
+    </div>
+
+    <p class="src">D'après <a href="https://www.youtube.com/watch?v=sj8Sg8qnjOg" target="_blank" rel="noopener">The
+    Golden Ratio (why it is so irrational)</a>, Numberphile.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var MAXN = 800, TAU = 2 * Math.PI;
+
+  var board = JXG.JSXGraph.initBoard('board', {
+    boundingbox: [-1.1, 1.1, 1.1, -1.1], keepaspectratio: true, axis: false,
+    showCopyright: false, showNavigation: false, pan: {enabled: false}, zoom: {enabled: false}
+  });
+
+  board.create('circle', [[0, 0], 1.02], {
+    strokeColor: '#e5e9ef', fillColor: '#fbfcfe', fillOpacity: 1, fixed: true, highlight: false
+  });
+
+  var seeds = [], k;
+  for (k = 0; k < MAXN; k++) {
+    seeds.push(board.create('point', [0, 0], {
+      face: 'o', size: 2, fixed: true, withLabel: false, highlight: false,
+      strokeColor: '#0f9d58', fillColor: '#7ac943', strokeWidth: 0.8, visible: false
+    }));
+  }
+
+  var elTurn = document.getElementById('turn'),
+      elN = document.getElementById('nSeeds'),
+      elPlay = document.getElementById('play');
+
+  function render() {
+    var t = parseFloat(elTurn.value), n = parseInt(elN.value, 10), i;
+    document.getElementById('turnVal').textContent = t.toFixed(7).replace('.', ',');
+    document.getElementById('nVal').textContent = n;
+
+    board.suspendUpdate();
+    for (i = 0; i < MAXN; i++) {
+      if (i < n) {
+        var a = TAU * t * i, r = Math.sqrt(i / n);
+        seeds[i].setPosition(JXG.COORDS_BY_USER, [r * Math.cos(a), r * Math.sin(a)]);
+        if (!seeds[i].visProp.visible) seeds[i].setAttribute({visible: true});
+      } else if (seeds[i].visProp.visible) {
+        seeds[i].setAttribute({visible: false});
+      }
+    }
+    board.unsuspendUpdate();
+  }
+
+  elTurn.addEventListener('input', render);
+  elN.addEventListener('input', render);
+  Array.prototype.forEach.call(document.querySelectorAll('button[data-t]'), function (b) {
+    b.addEventListener('click', function () { elTurn.value = b.dataset.t; render(); });
+  });
+
+  var timer = null;
+  elPlay.addEventListener('click', function () {
+    if (timer) {
+      clearInterval(timer); timer = null;
+      elPlay.textContent = 'Animer'; elPlay.classList.remove('on');
+      return;
+    }
+    elPlay.textContent = 'Arrêter'; elPlay.classList.add('on');
+    timer = setInterval(function () {
+      var t = parseFloat(elTurn.value) + 0.0004;
+      if (t > 1) t -= 1;
+      elTurn.value = t;
+      render();
+    }, 60);
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

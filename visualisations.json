@@ -1,58 +1,82 @@
 [
   {
     "title": "Frise chronologique - Les Lumieres",
-    "category": "1M",
+    "category": "Brouillons",
     "status": "non-publie",
-    "path": "visualisations/1M/frise-lumieres.html",
-    "description": "Frise chronologique sur Les Lumieres et la litterature francaise du XVIIIe siecle."
+    "path": "visualisations/brouillon/frise-lumieres.html",
+    "description": "Frise chronologique sur Les Lumieres et la litterature francaise du XVIIIe siecle.",
+    "chapter": ""
   },
   {
     "title": "Cercle trigonometrique",
-    "category": "3M",
+    "category": "Brouillons",
     "status": "non-publie",
-    "path": "visualisations/3M/cercle-trigonometrique.html",
-    "description": "Visualisation interactive du cercle trigonometrique."
+    "path": "visualisations/brouillon/cercle-trigonometrique.html",
+    "description": "Visualisation interactive du cercle trigonometrique.",
+    "chapter": ""
   },
   {
     "title": "Fonctions trigonometriques",
-    "category": "3M",
+    "category": "Brouillons",
     "status": "non-publie",
-    "path": "visualisations/3M/fonctions-trigonometriques.html",
-    "description": "Exploration des fonctions sinus, cosinus et tangente."
+    "path": "visualisations/brouillon/fonctions-trigonometriques.html",
+    "description": "Exploration des fonctions sinus, cosinus et tangente.",
+    "chapter": ""
   },
   {
     "title": "Identites remarquables",
-    "category": "3M",
+    "category": "Brouillons",
     "status": "non-publie",
-    "path": "visualisations/3M/identites-remarquables.html",
-    "description": "Visualisation des identites remarquables."
+    "path": "visualisations/brouillon/identites-remarquables.html",
+    "description": "Visualisation des identites remarquables.",
+    "chapter": ""
   },
   {
     "title": "Identite remarquable simple",
-    "category": "3M",
+    "category": "Brouillons",
     "status": "non-publie",
-    "path": "visualisations/3M/simple-identites.html",
-    "description": "Version simple de l'identite remarquable (a+b)^2."
+    "path": "visualisations/brouillon/simple-identites.html",
+    "description": "Version simple de l'identite remarquable (a+b)^2.",
+    "chapter": ""
   },
   {
     "title": "Theoreme de la valeur intermediaire",
-    "category": "3M",
+    "category": "Brouillons",
     "status": "non-publie",
-    "path": "visualisations/3M/theoreme-valeur-intermediaire.html",
-    "description": "Visualisation du theoreme de la valeur intermediaire."
+    "path": "visualisations/brouillon/theoreme-valeur-intermediaire.html",
+    "description": "Visualisation du theoreme de la valeur intermediaire.",
+    "chapter": ""
   },
   {
     "title": "TVI - version simple",
-    "category": "3M",
+    "category": "Brouillons",
     "status": "non-publie",
-    "path": "visualisations/3M/simple-ivt.html",
-    "description": "Version simple du theoreme de la valeur intermediaire."
+    "path": "visualisations/brouillon/simple-ivt.html",
+    "description": "Version simple du theoreme de la valeur intermediaire.",
+    "chapter": ""
   },
   {
     "title": "Limite geometrique",
-    "category": "3M",
+    "category": "Brouillons",
     "status": "non-publie",
-    "path": "visualisations/3M/limite-geometrique.html",
-    "description": "Introduction geometrique a la notion de limite."
+    "path": "visualisations/brouillon/limite-geometrique.html",
+    "description": "Introduction geometrique a la notion de limite.",
+    "chapter": ""
+  },
+  {
+    "title": "Le cercle de Moser",
+    "category": "3M2",
+    "status": "brouillon",
+    "path": "visualisations/3M2/c1-boite-a-outils/cercle-de-moser.html",
+    "description": "Points sur un cercle et toutes leurs cordes : pourquoi la suite 1, 2, 4, 8, 16 ne donne pas 32, et pourquoi des points reguliers donnent 30 au lieu de 31.",
+    "chapter": "C1 Boîte à outils"
+  },
+  {
+    "title": "Le nombre d'or",
+    "category": "3M2",
+    "status": "brouillon",
+    "path": "visualisations/3M2/c1-boite-a-outils/nombre-d-or-tournesol.html",
+    "description": "Graines placees a chaque rotation d'un tour donne : les fractions simples creent des spirales et des trous, phi remplit le disque.",
+    "chapter": "C1 Boîte à outils"
   }
 ]

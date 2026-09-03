@@ -1,29 +1,66 @@
 # Visualisations
 
-Catalogue statique de visualisations classees par categorie (`1M`, `2M`, `3M`, `4M`) et par statut (`non-publie`, `brouillon`, `pret`).
+Catalogue statique de visualisations interactives, classees par classe et par
+chapitre, avec un statut de publication.
+
+| classe | chapitre | dossier |
+|---|---|---|
+| `3M2` | `C1 Boîte à outils` | `visualisations/3M2/c1-boite-a-outils/` |
+| `4M1` | `1 Calcul intégral` | `visualisations/4M1/1-calcul-integral/` |
+
+`visualisations/brouillon/` regroupe les anciennes visualisations pas encore
+classees, toutes en `non-publie`.
+
+La page `index.html` lit `visualisations.json` et construit ses filtres a partir
+du contenu du catalogue.
 
 ## Ajouter une visualisation
 
-1. Placer le fichier HTML dans le dossier de categorie, par exemple `visualisations/3M/ma-visualisation.html`.
-2. Ajouter une entree dans `visualisations.json`.
-3. Commit et push sur `main`.
+```bash
+# 1. chemin normalise
+python3 scripts/catalogue.py chemin --annee 4M1 --chapitre "1 Calcul intégral" --nom "Somme de Riemann"
+# -> visualisations/4M1/1-calcul-integral/somme-de-riemann.html
 
-GitHub Pages publie automatiquement le site apres chaque push sur `main`.
+# 2. ecrire le fichier HTML a ce chemin (voir le skill visualisation-jsxgraph)
+
+# 3. enregistrer au catalogue
+python3 scripts/catalogue.py ajouter \
+  --titre "Somme de Riemann" --annee 4M1 --chapitre "1 Calcul intégral" \
+  --fichier visualisations/4M1/1-calcul-integral/somme-de-riemann.html \
+  --description "Une phrase." --statut brouillon
+```
 
 ## Statuts
 
-- `non-publie`: la visualisation n'apparait pas sur la page catalogue.
-- `brouillon`: la visualisation apparait avec le tag `Brouillon`.
-- `pret`: la visualisation apparait avec le tag `Prêt`.
+- `non-publie` : n'apparait pas sur la page.
+- `brouillon` : apparait avec le tag « Brouillon ».
+- `en-ligne` : apparait avec le tag « En ligne ».
 
-## Exemple d'entree
+Changer le statut :
 
-```json
-{
-  "title": "Ma visualisation",
-  "category": "3M",
-  "status": "brouillon",
-  "path": "visualisations/3M/ma-visualisation.html",
-  "description": "Courte description."
-}
+```bash
+python3 scripts/catalogue.py statut visualisations/4M1/1-calcul-integral/somme-de-riemann.html en-ligne
 ```
+
+## Publier
+
+```bash
+scripts/deployer.sh "message de commit"
+```
+
+Verification, commit, push sur `origin` puis sur `forge`. La mise en ligne est
+faite par `.gitlab-ci.yml` (GitLab Pages de la Forge) ; GitHub Pages continue de
+publier via `.github/workflows/pages.yml`.
+
+Configuration du remote, une seule fois :
+
+```bash
+git remote add forge git@forge.apps.education.fr:<groupe>/<projet>.git
+```
+
+Controle sans publication : `scripts/deployer.sh --verifier`.
+
+## Scripts
+
+- `scripts/catalogue.py` : `chemin`, `ajouter`, `statut`, `lister`, `verifier`.
+- `scripts/deployer.sh` : verification, commit, push, adresse de la page.
