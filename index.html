@@ -75,110 +75,75 @@
       margin-bottom: 22px;
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 14px;
-    }
-
-    .card {
-      display: flex;
-      min-height: 0;
-      flex-direction: column;
-      gap: 12px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: var(--panel);
-      padding: 18px;
-      text-decoration: none;
+      overflow: hidden;
+    }
+
+    thead th {
+      text-align: left;
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: #f1f4ef;
+    }
+
+    tbody a {
       color: inherit;
-      transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+      text-decoration: none;
+      font-weight: 650;
     }
 
-    .card:hover,
-    .card:focus-visible {
-      border-color: var(--accent);
-      box-shadow: 0 10px 30px rgba(32, 33, 36, 0.08);
-      transform: translateY(-2px);
-      outline: none;
+    tbody tr:hover a {
+      color: var(--accent);
     }
 
-    .meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+    td.secondaire {
+      color: var(--muted);
+      font-size: 0.92rem;
+      white-space: nowrap;
     }
 
     .tag {
-      display: inline-flex;
-      align-items: center;
-      min-height: 26px;
+      display: inline-block;
+      padding: 2px 8px;
       border-radius: 999px;
-      padding: 3px 9px;
-      font-size: 0.78rem;
+      font-size: 0.72rem;
       font-weight: 750;
       text-transform: uppercase;
     }
 
-    .category {
-      background: #e9eef6;
-      color: #244466;
-    }
-
-
-    .chapter {
-      background: #f0ece4;
-      color: #5a4a33;
-    }
-
-    .filter-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .filter-row label {
-      color: var(--muted);
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .filter-row select {
-      appearance: none;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      color: var(--text);
-      font: inherit;
-      font-size: 0.92rem;
-      padding: 7px 30px 7px 12px;
-      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%23666b73' stroke-width='1.6'/></svg>");
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-      background-size: 11px;
-      cursor: pointer;
-    }
-
-    .filter-row select:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 1px;
+    td .tag {
+      margin-left: 8px;
+      vertical-align: 1px;
     }
 
     .brouillon {
       background: var(--draft-bg);
       color: var(--draft-text);
     }
-
-    h2 {
-      margin: 0;
-      font-size: 1.2rem;
-      line-height: 1.25;
-      letter-spacing: 0;
-    }
-
-
 
     .empty {
       display: none;
@@ -220,7 +185,12 @@
       </div>
     </section>
 
-    <section class="grid" id="grid" aria-live="polite"></section>
+    <table id="liste" aria-live="polite">
+      <thead>
+        <tr><th>Visualisation</th><th>Classe</th><th>Chapitre</th></tr>
+      </thead>
+      <tbody id="corps"></tbody>
+    </table>
     <p class="empty" id="empty">Aucune visualisation ne correspond aux filtres.</p>
   </main>
 
@@ -232,7 +202,8 @@
       items: []
     };
 
-    const grid = document.querySelector("#grid");
+    const corps = document.querySelector("#corps");
+    const liste = document.querySelector("#liste");
     const count = document.querySelector("#count");
     const empty = document.querySelector("#empty");
     const selYear = document.querySelector("#fYear");
@@ -277,17 +248,18 @@
     function render() {
       const items = visibleItems();
       const publicTotal = state.items.filter(publie).length;
-      grid.innerHTML = items.map((item) => `
-        <a class="card" href="${item.path}">
-          <div class="meta">
-            <span class="tag category">${item.category}</span>
-            ${item.chapter ? `<span class="tag chapter">${item.chapter}</span>` : ""}
+      corps.innerHTML = items.map((item) => `
+        <tr>
+          <td>
+            <a href="${item.path}">${item.title}</a>
             ${item.status === "brouillon" ? `<span class="tag brouillon">Brouillon</span>` : ""}
-          </div>
-          <h2>${item.title}</h2>
-        </a>
+          </td>
+          <td class="secondaire">${item.category}</td>
+          <td class="secondaire">${item.chapter || ""}</td>
+        </tr>
       `).join("");
       count.textContent = `${items.length} / ${publicTotal}`;
+      liste.style.display = items.length ? "" : "none";
       empty.style.display = items.length ? "none" : "block";
     }
 
@@ -324,7 +296,8 @@
         refresh();
       })
       .catch((error) => {
-        grid.innerHTML = "";
+        corps.innerHTML = "";
+        liste.style.display = "none";
         count.textContent = "Erreur";
         empty.textContent = `Impossible de charger visualisations.json: ${error.message}`;
         empty.style.display = "block";
