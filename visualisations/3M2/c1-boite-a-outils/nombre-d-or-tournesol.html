@@ -24,8 +24,6 @@
   input[type=text].erreur{border-color:#d92d20;outline-color:#d92d20}
   .val{min-width:96px;text-align:right;font-family:ui-monospace,Menlo,Consolas,monospace;
        font-weight:700;color:var(--accent)}
-  .cf{margin-top:10px;padding:10px 12px;border-radius:8px;background:#f6f8fb;
-      font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86rem;overflow-x:auto;white-space:nowrap}
   .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
   button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;
          padding:7px 12px;font:inherit;font-size:.88rem;cursor:pointer}
@@ -63,7 +61,11 @@
       <button id="appliquer">Appliquer</button>
     </div>
 
-    <div class="cf" id="cf"></div>
+    <div class="row">
+      <label for="cf">[a₀; a₁, …]</label>
+      <input type="text" id="cf" spellcheck="false" placeholder="0; 1, 1, 1, 2, 5">
+      <button id="appliquerCf">Appliquer</button>
+    </div>
 
     <div class="btns">
       <button id="play">Animer</button>
@@ -228,6 +230,30 @@
     return {termes: termes, fini: q === 0n};
   }
 
+  // termes -> nombre : a0 + 1/(a1 + 1/(a2 + ...))
+  function depuisFractionContinue(termes) {
+    if (!termes.length) throw new Error("aucun terme");
+    var v = {n: termes[termes.length - 1], d: 1n};
+    for (var i = termes.length - 2; i >= 0; i--) {
+      if (v.n === 0n) throw new Error("terme nul");
+      v = add({n: termes[i], d: 1n}, div({n: 1n, d: 1n}, v));
+    }
+    return v;
+  }
+
+  function lireTermes(texte) {
+    var bruts = texte.replace(/[[\]]/g, " ").split(/[;,\s]+/).filter(function (t) {
+      return t !== "" && t !== "\u2026" && t !== "...";
+    });
+    if (!bruts.length) throw new Error("aucun terme");
+    return bruts.map(function (t, i) {
+      if (!/^-?\d+$/.test(t)) throw new Error("terme invalide");
+      var a = BigInt(t);
+      if (i > 0 && a < 1n) throw new Error("terme < 1");
+      return a;
+    });
+  }
+
   // ---------------------------------------------------------------- figure
   var MAXN = 800, TAU = 2 * Math.PI;
 
@@ -260,8 +286,17 @@
   function afficherFractionContinue() {
     var cf = fractionContinue(tour, 20);
     var t = cf.termes.map(String);
-    elCf.textContent = "[" + t[0] + "; " + t.slice(1).join(", ") +
-      (cf.fini ? "]" : ", …]");
+    elCf.value = t[0] + "; " + t.slice(1).join(", ") + (cf.fini ? "" : ", …");
+    elCf.classList.remove('erreur');
+  }
+
+  function appliquerFractionContinue() {
+    try {
+      fixerTour(depuisFractionContinue(lireTermes(elCf.value)));
+      elCf.classList.remove('erreur');
+    } catch (err) {
+      elCf.classList.add('erreur');
+    }
   }
 
   function dessiner() {
@@ -308,6 +343,10 @@
   });
   elN.addEventListener('input', dessiner);
   document.getElementById('appliquer').addEventListener('click', appliquerExpression);
+  document.getElementById('appliquerCf').addEventListener('click', appliquerFractionContinue);
+  elCf.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Enter') appliquerFractionContinue();
+  });
   elExpr.addEventListener('keydown', function (ev) {
     if (ev.key === 'Enter') appliquerExpression();
   });

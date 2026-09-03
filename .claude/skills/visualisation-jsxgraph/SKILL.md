@@ -115,6 +115,11 @@ boutons de raccourci se contentent de remplir le champ. Bordure rouge
 (`classList.toggle('erreur', …)`) quand l'expression ne se lit pas — aucun
 message d'erreur ecrit.
 
+- **Grandeur calculee** : quand une valeur affichee se laisse inverser (fraction
+  continue, coordonnees, coefficients), en faire un champ editable plutot qu'un
+  simple affichage — on doit pouvoir la reecrire et l'appliquer, la figure se
+  recalculant dans l'autre sens. Le champ est reecrit sous forme canonique au
+  rendu suivant.
 - **Fonction** : `board.jc.snippet(texte, true, 'x', true)` (JessieCode) accepte
   `x^2+1`, `sin`, `sqrt`, `exp`, `abs`. Verifier que l'appel rend bien un nombre.
 - **Nombre** : analyseur maison en fractions exactes sur `BigInt` (`{n, d}`),
