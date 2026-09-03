@@ -8,7 +8,7 @@ Arborescence attendue : visualisations/<annee>/<chapitre>/<nom>.html
 Usage :
   scripts/catalogue.py ajouter --titre "..." --annee 4M1 --chapitre "Trigonométrie" \
       --fichier visualisations/4M1/trigonometrie/cercle.html \
-      --description "..." --statut brouillon
+      --statut brouillon
   scripts/catalogue.py statut visualisations/4M1/trigonometrie/cercle.html en-ligne
   scripts/catalogue.py chemin --annee 4M1 --chapitre "Trigonométrie" --nom "Cercle trigo"
   scripts/catalogue.py lister [--annee 4M1] [--statut brouillon]
@@ -72,7 +72,6 @@ def cmd_ajouter(args):
         "chapter": args.chapitre,
         "status": statut,
         "path": chemin,
-        "description": args.description or "",
     }
 
     for i, item in enumerate(items):
@@ -159,7 +158,6 @@ def main():
     a.add_argument("--annee", required=True, help="4M1, 3M2, ...")
     a.add_argument("--chapitre", required=True)
     a.add_argument("--fichier", required=True)
-    a.add_argument("--description", default="")
     a.add_argument("--statut", default="brouillon", help=" | ".join(STATUTS))
     a.set_defaults(func=cmd_ajouter)
 

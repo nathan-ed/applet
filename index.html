@@ -58,12 +58,6 @@
       letter-spacing: 0;
     }
 
-    .subtitle {
-      margin: 10px 0 0;
-      max-width: 680px;
-      color: var(--muted);
-      font-size: 1rem;
-    }
 
     .count {
       flex: 0 0 auto;
@@ -196,10 +190,6 @@
       letter-spacing: 0;
     }
 
-    .description {
-      margin: 0;
-      color: var(--muted);
-    }
 
     .path {
       margin-top: auto;
@@ -238,7 +228,6 @@
     <div class="wrap top">
       <div>
         <h1>Visualisations</h1>
-        <p class="subtitle">Catalogue par classe et par chapitre.</p>
       </div>
       <div class="count" id="count"></div>
     </div>
@@ -330,7 +319,6 @@
             <span class="tag ${item.status}">${labels[item.status] || item.status}</span>
           </div>
           <h2>${item.title}</h2>
-          <p class="description">${item.description || ""}</p>
           <span class="path">${item.path}</span>
         </a>
       `).join("");

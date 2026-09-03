@@ -26,8 +26,7 @@ python3 scripts/catalogue.py chemin --annee 4M1 --chapitre "1 Calcul intégral" 
 # 3. enregistrer au catalogue
 python3 scripts/catalogue.py ajouter \
   --titre "Somme de Riemann" --annee 4M1 --chapitre "1 Calcul intégral" \
-  --fichier visualisations/4M1/1-calcul-integral/somme-de-riemann.html \
-  --description "Une phrase." --statut brouillon
+  --fichier visualisations/4M1/1-calcul-integral/somme-de-riemann.html  --statut brouillon
 ```
 
 ## Statuts

@@ -79,7 +79,6 @@ python3 scripts/catalogue.py ajouter \
   --annee 4M1 \
   --chapitre "1 Calcul intégral" \
   --fichier visualisations/4M1/1-calcul-integral/somme-de-riemann.html \
-  --description "Une phrase." \
   --statut brouillon
 ```
 
