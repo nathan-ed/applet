@@ -5,7 +5,7 @@ pages:
   image: alpine:latest
   script:
     - mkdir -p public
-    - cp index.html visualisations.json public/
+    - cp index.html visualisations.json visualisations.js public/
     - cp -r visualisations public/
     - test -f .nojekyll && cp .nojekyll public/ || true
   artifacts:

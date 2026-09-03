@@ -24,6 +24,9 @@ import unicodedata
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CATALOGUE = os.path.join(RACINE, "visualisations.json")
+# copie en JavaScript, pour que index.html s'ouvre aussi en double-clic (file://),
+# ou fetch() est interdit par le navigateur
+CATALOGUE_JS = os.path.join(RACINE, "visualisations.js")
 STATUTS = ("non-publie", "brouillon", "en-ligne")
 # statuts historiques encore tolérés en lecture
 ALIAS = {"pret": "en-ligne", "draft": "brouillon"}
@@ -46,6 +49,15 @@ def sauver(items):
     with open(CATALOGUE, "w", encoding="utf-8") as f:
         json.dump(items, f, indent=2, ensure_ascii=False)
         f.write("\n")
+    ecrire_js(items)
+
+
+def ecrire_js(items):
+    with open(CATALOGUE_JS, "w", encoding="utf-8") as f:
+        f.write("// Genere par scripts/catalogue.py -- ne pas editer.\n")
+        f.write("window.CATALOGUE = ")
+        json.dump(items, f, indent=2, ensure_ascii=False)
+        f.write(";\n")
 
 
 def normaliser_statut(valeur):
@@ -137,6 +149,17 @@ def cmd_verifier(_args):
             rel = os.path.relpath(os.path.join(dossier, nom), RACINE).replace(os.sep, "/")
             if rel not in vus:
                 orphelins.append(rel)
+
+    if not os.path.exists(CATALOGUE_JS):
+        ecrire_js(items)
+        print("visualisations.js regenere")
+    else:
+        with open(CATALOGUE_JS, encoding="utf-8") as f:
+            contenu = f.read()
+        if json.dumps(items, ensure_ascii=False) not in json.dumps(
+                json.loads(contenu.split("=", 1)[1].rsplit(";", 1)[0]), ensure_ascii=False):
+            ecrire_js(items)
+            print("visualisations.js resynchronise")
 
     for e in erreurs:
         print("ERREUR  %s" % e)

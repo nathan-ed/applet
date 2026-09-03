@@ -14,8 +14,6 @@
       --line: #d9ded8;
       --accent: #246b5a;
       --accent-dark: #17483d;
-      --ready-bg: #e4f4ec;
-      --ready-text: #14613e;
       --draft-bg: #fff1d6;
       --draft-text: #835000;
     }
@@ -85,9 +83,9 @@
 
     .card {
       display: flex;
-      min-height: 190px;
+      min-height: 0;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--panel);
@@ -127,11 +125,6 @@
       color: #244466;
     }
 
-    .pret,
-    .en-ligne {
-      background: var(--ready-bg);
-      color: var(--ready-text);
-    }
 
     .chapter {
       background: #f0ece4;
@@ -186,13 +179,6 @@
     }
 
 
-    .path {
-      margin-top: auto;
-      color: var(--accent-dark);
-      font-size: 0.86rem;
-      font-weight: 700;
-      overflow-wrap: anywhere;
-    }
 
     .empty {
       display: none;
@@ -238,17 +224,12 @@
     <p class="empty" id="empty">Aucune visualisation ne correspond aux filtres.</p>
   </main>
 
+  <script src="visualisations.js"></script>
   <script>
     const state = {
       year: "all",
       chapter: "all",
       items: []
-    };
-
-    const labels = {
-      "en-ligne": "En ligne",
-      pret: "En ligne",
-      brouillon: "Brouillon"
     };
 
     const grid = document.querySelector("#grid");
@@ -301,10 +282,9 @@
           <div class="meta">
             <span class="tag category">${item.category}</span>
             ${item.chapter ? `<span class="tag chapter">${item.chapter}</span>` : ""}
-            <span class="tag ${item.status}">${labels[item.status] || item.status}</span>
+            ${item.status === "brouillon" ? `<span class="tag brouillon">Brouillon</span>` : ""}
           </div>
           <h2>${item.title}</h2>
-          <span class="path">${item.path}</span>
         </a>
       `).join("");
       count.textContent = `${items.length} / ${publicTotal}`;
@@ -322,13 +302,19 @@
       render();
     });
 
-    fetch("visualisations.json")
-      .then((response) => {
+    const chargerCatalogue = () => {
+      if (Array.isArray(window.CATALOGUE)) {
+        return Promise.resolve(window.CATALOGUE);
+      }
+      return fetch("visualisations.json").then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
         return response.json();
-      })
+      });
+    };
+
+    chargerCatalogue()
       .then((items) => {
         state.items = items.sort((a, b) => {
           return a.category.localeCompare(b.category, "fr")

@@ -59,6 +59,12 @@ git remote add forge git@forge.apps.education.fr:<groupe>/<projet>.git
 
 Controle sans publication : `scripts/deployer.sh --verifier`.
 
+## Ouvrir la page
+
+`index.html` s'ouvre directement par double-clic : le catalogue est lu dans
+`visualisations.js`, regenere automatiquement par `scripts/catalogue.py` a chaque
+modification. En cas d'incoherence : `python3 scripts/catalogue.py verifier`.
+
 ## Scripts
 
 - `scripts/catalogue.py` : `chemin`, `ajouter`, `statut`, `lister`, `verifier`.
