@@ -5,6 +5,21 @@ description: Creer une visualisation mathematique interactive en JSXGraph pour c
 
 # Visualisation JSXGraph
 
+## 0. Tenir ce fichier a jour
+
+Des qu'une correction, une preference ou une contrainte technique apparait en
+cours de travail, l'ecrire ici dans la foulee, sans attendre qu'on le demande :
+
+- une remarque sur la forme (« pas ce mot », « pas ce genre de texte ») va dans
+  les regles de forme, formulee comme une regle et pas comme un exemple ;
+- un piege technique (limite d'une bibliotheque, perte de precision, chose qui ne
+  marche pas dans le navigateur) va dans les points techniques, avec la parade ;
+- un changement d'organisation (nouvelle classe, nouveau chapitre, nouveau
+  script, nouveau statut) va dans les sections concernees.
+
+Une correction repetee deux fois est une regle manquante dans ce fichier.
+Corriger aussi `references/gabarit.html` quand la regle touche la mise en page.
+
 ## 1. Ce qu'il faut demander avant d'ecrire
 
 - **la classe** et **le chapitre**. Pour l'instant tout va dans l'un des deux :
