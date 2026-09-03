@@ -82,6 +82,32 @@
       overflow: hidden;
     }
 
+    thead th button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 0;
+      padding: 0;
+      background: none;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    thead th button:hover {
+      color: var(--accent);
+    }
+
+    thead th .fleche {
+      opacity: 0.35;
+      font-size: 0.7em;
+    }
+
+    thead th[aria-sort] .fleche {
+      opacity: 1;
+      color: var(--accent);
+    }
+
     thead th {
       text-align: left;
       font-size: 0.76rem;
@@ -169,12 +195,17 @@
         <select id="fYear"></select>
         <label for="fChapter">Chapitre</label>
         <select id="fChapter"></select>
+        <input type="search" id="fTexte" placeholder="Rechercher" aria-label="Rechercher">
       </div>
     </section>
 
     <table id="liste" aria-live="polite">
       <thead>
-        <tr><th>Visualisation</th><th>Classe</th><th>Chapitre</th></tr>
+        <tr>
+          <th data-tri="title"><button type="button">Visualisation <span class="fleche"></span></button></th>
+          <th data-tri="category"><button type="button">Classe <span class="fleche"></span></button></th>
+          <th data-tri="chapter"><button type="button">Chapitre <span class="fleche"></span></button></th>
+        </tr>
       </thead>
       <tbody id="corps"></tbody>
     </table>
@@ -186,10 +217,15 @@
     const state = {
       year: "all",
       chapter: "all",
+      texte: "",
+      tri: "title",
+      sens: 1,
       items: []
     };
 
     const corps = document.querySelector("#corps");
+    const selTexte = document.querySelector("#fTexte");
+    const entetes = document.querySelectorAll("thead th[data-tri]");
     const liste = document.querySelector("#liste");
     const count = document.querySelector("#count");
     const empty = document.querySelector("#empty");
@@ -198,11 +234,33 @@
 
     const publie = (item) => item.status === "en-ligne" || item.status === "pret";
 
+    const sansAccent = (texte) => (texte || "")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
     function visibleItems() {
+      const recherche = sansAccent(state.texte).trim();
       return state.items.filter(publie).filter((item) => {
         const yearOk = state.year === "all" || item.category === state.year;
         const chapterOk = state.chapter === "all" || (item.chapter || "") === state.chapter;
-        return yearOk && chapterOk;
+        const texteOk = recherche === "" ||
+          sansAccent(`${item.title} ${item.category} ${item.chapter}`).includes(recherche);
+        return yearOk && chapterOk && texteOk;
+      }).sort((a, b) => {
+        const cle = (item) => item[state.tri] || "";
+        return state.sens * cle(a).localeCompare(cle(b), "fr")
+          || a.title.localeCompare(b.title, "fr");
+      });
+    }
+
+    function majEntetes() {
+      entetes.forEach((th) => {
+        const actif = th.dataset.tri === state.tri;
+        if (actif) {
+          th.setAttribute("aria-sort", state.sens === 1 ? "ascending" : "descending");
+        } else {
+          th.removeAttribute("aria-sort");
+        }
+        th.querySelector(".fleche").textContent = actif ? (state.sens === 1 ? "▲" : "▼") : "⇅";
       });
     }
 
@@ -233,6 +291,7 @@
     }
 
     function render() {
+      majEntetes();
       const items = visibleItems();
       const publicTotal = state.items.filter(publie).length;
       corps.innerHTML = items.map((item) => `
@@ -248,6 +307,20 @@
       liste.style.display = items.length ? "" : "none";
       empty.style.display = items.length ? "none" : "block";
     }
+
+    selTexte.addEventListener("input", () => {
+      state.texte = selTexte.value;
+      render();
+    });
+
+    entetes.forEach((th) => {
+      th.querySelector("button").addEventListener("click", () => {
+        const champ = th.dataset.tri;
+        state.sens = state.tri === champ ? -state.sens : 1;
+        state.tri = champ;
+        render();
+      });
+    });
 
     corps.addEventListener("click", (event) => {
       if (event.target.closest("a")) {
