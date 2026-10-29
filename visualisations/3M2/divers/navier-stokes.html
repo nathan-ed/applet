@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Navier–Stokes — expériences</title>
+<style>
+:root{--ink:#243343;--muted:#6b7785;--line:#dce4eb;--pressure:#2678d3;--viscosity:#b57a14;--external:#b84669;--transport:#8058b8;--time:#218477}
+*{box-sizing:border-box}body{margin:0;padding:20px 12px 40px;background:#f4f6f9;color:var(--ink);font:15px/1.5 system-ui,sans-serif}.wrap{max-width:720px;margin:auto}.retour{color:var(--muted);text-decoration:none;font-size:.88rem}h1{font-size:1.5rem;text-align:center;margin:12px 0 18px;font-weight:600}.card{background:white;border:1px solid var(--line);border-radius:14px;padding:16px}.scene-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.scene-heading strong{font-weight:550;font-size:1.1rem}.scene-heading span{color:var(--muted);font-size:.75rem}canvas{display:block;width:100%;aspect-ratio:680/410;border:1px solid var(--line);border-radius:10px;background:#f8fbfd;touch-action:none;cursor:grab}canvas:active{cursor:grabbing}.gesture{text-align:center;margin:10px 0 14px;font-size:.95rem;color:var(--ink);min-height:1.5em}button,input{font:inherit}button{border:1px solid var(--line);border-radius:8px;background:white;color:var(--ink);padding:8px 12px;cursor:pointer;min-height:42px}button:hover{border-color:#70859b}button:focus-visible,input:focus-visible,canvas:focus-visible{outline:3px solid #8bbcec;outline-offset:3px}button[aria-pressed=true]{border-color:var(--c,#2678d3);background:color-mix(in srgb,var(--c,#2678d3) 11%,white)}.equation{display:flex;align-items:center;justify-content:center;gap:3px;padding:4px 0 9px}.term{border:0;border-bottom:4px solid var(--c);border-radius:6px 6px 0 0;padding:9px 7px;min-height:78px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:10px}.term .math{font-size:1.3rem}.math,.sign{font-family:Georgia,serif;white-space:nowrap}.term.contributing{box-shadow:0 0 0 2px var(--pressure) inset;background:#e8f2fc}.term small{font-size:.65rem;white-space:nowrap}.sign{font-size:1.25rem}.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.1}.frac span:first-child{border-bottom:1px solid}.expanded-part{display:none}.equation.expanded .expanded-part{display:contents}.equation.expanded #material{display:none}.decomposition{display:block;margin:0 auto 12px;padding:4px 10px;min-height:32px;font-size:.8rem;color:#617588}.equation-groups{display:grid;grid-template-columns:34% 66%;gap:4px;margin:0 5px 9px;text-align:center;font-size:.8rem}.equation-groups span{border-top:2px solid #a7b8c7;padding-top:5px}.constraints{text-align:center;font-size:.8rem;color:var(--muted);margin:0 0 12px}.fluids,.actions{display:flex;gap:8px;flex-wrap:wrap}.fluids button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;border-top:3px solid var(--c)}.drop{display:inline-block;width:10px;height:14px;background:var(--c);border-radius:60% 40% 60% 40%;transform:rotate(-30deg)}.controls{margin:16px 0;display:grid;gap:10px}.control{display:flex;gap:12px;align-items:center}.control label{width:125px;font-size:.9rem}.control input{flex:1;min-width:40px;accent-color:var(--control-color,#2678d3)}output{font-variant-numeric:tabular-nums;font-size:.85rem;min-width:64px;text-align:right}.actions button{flex:auto}.actions .actuator{background:#eef4fa;border-color:#91acc8;font-weight:550;touch-action:none;user-select:none}.actions .actuator:active{background:#d1e7fb}.legend{display:flex;gap:16px;justify-content:center;font-size:.8rem;margin:12px 0;color:var(--muted)}.legend label{cursor:pointer;display:flex;gap:5px;align-items:center}.src{font-size:.75rem;color:var(--muted);text-align:center;margin:16px 0 0}.src a{color:inherit}[hidden]{display:none!important}button:disabled{opacity:.4;cursor:default}@media(max-width:480px){.card{padding:10px}.term{padding:8px 3px;gap:8px;min-height:70px}.term .math{font-size:1rem}.term.contributing{box-shadow:0 0 0 2px var(--pressure) inset;background:#e8f2fc}.term small{font-size:.5rem}.sign{font-size:1rem}.equation{gap:1px}.fluids{gap:5px}.fluids button{padding:7px 4px;gap:5px;font-size:.88rem}.scene-heading strong{font-size:1rem}.scene-heading span{font-size:.65rem}.control label{width:105px}.gesture{font-size:.85rem}.legend{gap:8px;font-size:.73rem}}
+</style>
+</head>
+<body><main class="wrap">
+<a class="retour" href="../../../index.html">← Retour au catalogue</a>
+<h1>Navier–Stokes</h1>
+<div class="card">
+<div class="scene-heading"><strong id="scene-name">Deux réservoirs</strong><span id="model-label">Modèle réduit · unités relatives</span></div>
+<canvas id="scene" width="1360" height="820" tabindex="0" aria-label="Deux réservoirs : déplacer les niveaux d’eau. Les curseurs proposent les mêmes réglages."></canvas>
+<div class="gesture" id="gesture">Glisser les deux niveaux d’eau.</div>
+<div class="equation" id="equation" aria-label="Sélectionner un terme de l’équation">
+<button class="term" id="material" data-mode="time" style="--c:var(--time)" aria-pressed="false"><span class="math">ρ <span class="frac"><span>Du</span><span>Dt</span></span></span><small>Accélération du fluide</small></button>
+<span class="expanded-part" id="acceleration-detail">
+<span class="sign" title="Masse volumique">ρ(</span>
+<button class="term" data-mode="time" style="--c:var(--time)" aria-pressed="false"><span class="math frac"><span>∂u</span><span>∂t</span></span><small>Accélération locale</small></button><span class="sign">+</span>
+<button class="term" data-mode="transport" style="--c:var(--transport)" aria-pressed="false"><span class="math">(u · ∇)u</span><small>Transport</small></button><span class="sign">)</span></span><span class="sign">=</span>
+<button class="term" data-mode="pressure" style="--c:var(--pressure)" aria-pressed="true"><span class="math">−∇p</span><small>Pression</small></button><span class="sign">+</span>
+<button class="term" data-mode="viscosity" style="--c:var(--viscosity)" aria-pressed="false"><span class="math" id="stress-term">μ ∇²u</span><small>Viscosité</small></button><span class="sign">+</span>
+<button class="term" data-mode="external" style="--c:var(--external)" aria-pressed="false"><span class="math" id="force-term">ρg</span><small>Force extérieure</small></button>
+</div>
+<div class="equation-groups"><span>ρ × accélération</span><span>Forces par volume</span></div>
+<button id="decompose" class="decomposition" aria-expanded="false" aria-controls="acceleration-detail">Décomposer l’accélération</button>
+<div class="constraints" id="constraints">∇ · u = 0 · ρ, μ constantes</div>
+<div class="fluids" aria-label="Choisir un fluide">
+<button data-fluid="water" style="--c:#238dc3" aria-pressed="true"><i class="drop" aria-hidden="true"></i>Eau</button>
+<button data-fluid="honey" style="--c:#c88a15" aria-pressed="false"><i class="drop" aria-hidden="true"></i>Miel</button>
+<button data-fluid="air" style="--c:#798e9f" aria-pressed="false"><i class="drop" aria-hidden="true"></i>Air</button>
+<button data-fluid="ketchup" style="--c:#ce5039" aria-pressed="false"><i class="drop" aria-hidden="true"></i>Ketchup</button>
+</div>
+<div class="controls">
+<div class="control" id="control-a"><label for="parameter-a" id="label-a">Pression à gauche</label><input id="parameter-a" type="range" min="0" max="100" value="80"><output id="value-a">80 %</output></div>
+<div class="control" id="control-b"><label for="parameter-b" id="label-b">Pression à droite</label><input id="parameter-b" type="range" min="0" max="100" value="25"><output id="value-b">25 %</output></div>
+</div>
+<div class="actions"><button id="actuator" class="actuator">Inverser les pressions</button><button id="play" aria-pressed="true">Arrêter</button><button id="reset">Recommencer</button></div>
+<div class="legend"><label><input id="show-velocity" type="checkbox" checked>Vitesse <span style="color:#314b65">→</span></label><label><input id="show-force" type="checkbox" checked><span id="overlay-name">Force</span> <span id="force-swatch" style="color:var(--pressure)">→</span></label><label><input id="show-trail" type="checkbox" checked>Trace</label></div>
+<div class="actions"><button id="compare" aria-pressed="false">Course des quatre fluides</button><button id="vortex" aria-pressed="false">Tourbillon · résultat annoncé</button></div>
+<p class="src">D’après <a href="https://www.youtube.com/watch?v=ERBVFcutl3M" target="_blank" rel="noopener">Numberphile</a>, Tom Crawford · <a href="https://openai.com/index/navier-stokes-solution/" target="_blank" rel="noopener">Résultat annoncé par OpenAI</a> · <a href="https://galileo.phys.virginia.edu/classes/152.mf1i.spring02/Stokes_Law.htm" target="_blank" rel="noopener">Chute visqueuse</a>.</p>
+</div></main>
+<script>
+(() => {
+'use strict';
+// A reduced incompressible channel model: rho*u_t = -p_x + (tau)_y + rho*g_x.
+// Parameters are deliberately qualitative, not material measurements.
+// Transport uses a separate prescribed divergence-free field; the vortex is geometric.
+const fluids={water:{name:'Eau',color:'#238dc3',mu:.025,rho:1},honey:{name:'Miel',color:'#c88a15',mu:.7,rho:1.4},air:{name:'Air',color:'#798e9f',mu:.012,rho:.08},ketchup:{name:'Ketchup',color:'#ce5039',mu:.3,rho:1.1}};
+const colors={pressure:'#2678d3',viscosity:'#b57a14',external:'#b84669',transport:'#8058b8',time:'#218477'};
+const $=id=>document.getElementById(id),canvas=$('scene'),ctx=canvas.getContext('2d');
+const W=680,H=410,N=33,dy=1/(N-1),clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+let mode='pressure',fluid='water',running=!matchMedia('(prefers-reduced-motion: reduce)').matches;
+let left=.8,right=.25,wall=0,angle=20,opening=.45,flow=.65,concentration=.4,pushing=false,grab=null;
+let clock=0,belt=0,packet=160,history=[],trail=[],probeHistory=[],velocity=new Float64Array(N),force=new Float64Array(N),acceleration=new Float64Array(N);
+let races=Object.keys(fluids).map(key=>({key,u:new Float64Array(N),front:135}));
+// Identical dense balls; reduced drag model, not a calibrated falling-ball viscometer.
+// Newtonian drag is linear (Stokes-type); ketchup has a regularized nonlinear drag law.
+const fallMedia={air:{rho:.0012,drag:.12},water:{rho:1,drag:2.8},honey:{rho:1.4,drag:36},ketchup:{rho:1.1,drag:0}};
+const fallKeys=['air','water','honey','ketchup'];
+let releaseHeight=.9,dragScale=1,falling=false,balls=[];
+function prepareFall(){falling=false;balls=fallKeys.map(key=>({key,y:340-releaseHeight*230,v:0,path:[]}));}
+function fallDrag(key,v,scale){
+ return scale*(key==='ketchup'?.8*v+55*Math.tanh(v/2)+30*Math.sign(v)*Math.pow(Math.abs(v),.45):fallMedia[key].drag*v);
+}
+function advanceBall(ball,dt,scale){
+ const g=160*(1-fallMedia[ball.key].rho/8);
+ let v,y;
+ if(ball.key!=='ketchup'){
+  const k=fallMedia[ball.key].drag*scale,e=Math.exp(-k*dt),terminal=g/k;
+  v=ball.v*e+terminal*(-Math.expm1(-k*dt));
+  y=ball.y+terminal*dt+(ball.v-terminal)*(-Math.expm1(-k*dt))/k;
+ }else{
+  let lo=0,hi=ball.v+g*dt;
+  for(let i=0;i<40;i++){const mid=(lo+hi)/2;if(mid+dt*fallDrag(ball.key,mid,scale)>ball.v+g*dt)hi=mid;else lo=mid;}
+  v=(lo+hi)/2;y=ball.y+v*dt;
+ }
+ return {v:y>=340?0:v,y:Math.min(340,y)};
+}
+let pressureInitial=[.8,.25];
+let jet=[],squeeze=0;
+let tracers=[];
+function reset(){if(mode==='pressure')[left,right]=pressureInitial;jet=[];squeeze=0;prepareFall();velocity.fill(0);force.fill(0);acceleration.fill(0);clock=0;belt=0;packet=160;trail=[];history=[];probeHistory=[];races=Object.keys(fluids).map(key=>({key,u:new Float64Array(N),front:135}));tracers=Array.from({length:168},(_,i)=>({x:125+(i%24)*18.5,s:(Math.floor(i/24)+.5)/7}));if(mode==='pressure')sync();draw();}
+function viscosity(f,gamma){return f===fluids.ketchup?.10+.13/Math.sqrt(gamma*gamma+.0025)+.20*Math.pow(gamma*gamma+.01,-1/3):f.mu;}
+function solve(old,f,dt,drive,top=0){
+ // Picard-linearized backward Euler; stationary lower wall, prescribed upper wall.
+ let guess=Float64Array.from(old);
+ for(let iteration=0;iteration<5;iteration++){
+  const a=new Float64Array(N),b=new Float64Array(N),c=new Float64Array(N),d=new Float64Array(N);
+  const k=Array.from({length:N-1},(_,j)=>viscosity(f,(guess[j+1]-guess[j])/dy));
+  b[0]=b[N-1]=1;d[0]=top;d[N-1]=0;
+  for(let j=1;j<N-1;j++){a[j]=-dt*k[j-1]/(f.rho*dy*dy);c[j]=-dt*k[j]/(f.rho*dy*dy);b[j]=1-a[j]-c[j];d[j]=old[j]+dt*drive;}
+  for(let j=1;j<N;j++){const r=a[j]/b[j-1];b[j]-=r*c[j-1];d[j]-=r*d[j-1];}
+  guess[N-1]=d[N-1]/b[N-1];for(let j=N-2;j>=0;j--)guess[j]=(d[j]-c[j]*guess[j+1])/b[j];
+ }
+ return guess;
+}
+function sample(u,s){const q=clamp(s,0,1)*(N-1),j=Math.min(N-2,Math.floor(q));return u[j]+(u[j+1]-u[j])*(q-j);}
+function exchangeLevels(pLeft,pRight,uBefore,uAfter,dt){
+ // Equal reservoir capacities: the volume leaving one enters the other.
+ let flux=0;
+ for(let j=0;j<N;j++)flux+=(uBefore[j]+uAfter[j])*.5*(j===0||j===N-1?.5:1)*dy;
+ const requested=.12*flux*dt;
+ const moved=clamp(requested,-Math.min(pRight,1-pLeft),Math.min(pLeft,1-pRight));
+ return {left:pLeft-moved,right:pRight+moved,blocked:Math.abs(requested-moved)>1e-12};
+}
+function half(x){return 57-(1-opening)*47*Math.exp(-(((x-340)/105)**2));}
+function transportSpeed(x){return flow*90/half(x);}
+function step(dt){
+ clock+=dt;
+ const f=fluids[fluid];
+ if(mode==='viscosity'){
+  if(falling)for(const ball of balls){
+   if(ball.y>=340)continue;
+   const next=advanceBall(ball,dt,dragScale);ball.y=next.y;ball.v=next.v;
+   ball.path.push(ball.y);if(ball.path.length>100)ball.path.shift();
+  }
+ }else if(mode==='compare'){
+  for(const race of races){race.u=solve(race.u,fluids[race.key],dt,2*(left-right)/fluids[race.key].rho);race.front=clamp(race.front+sample(race.u,.5)*22*dt,117,570);}
+ }else if(mode==='transport'){
+  for(const p of tracers){p.x+=transportSpeed(p.x)*38*dt;if(p.x>574)p.x=112;}
+  packet+=transportSpeed(packet)*38*dt;if(packet>574){packet=112;trail=[];}
+ }else if(mode!=='vortex'){
+  const drive=mode==='pressure'?2*(left-right)/f.rho:mode==='time'?(pushing?1.5*flow/f.rho:0):mode==='external'?Math.sin(angle*Math.PI/180):0;
+  const old=velocity;velocity=solve(old,f,dt,drive,mode==='viscosity'?wall:0);
+  if(mode==='pressure'){
+   const next=exchangeLevels(left,right,old,velocity,dt);left=next.left;right=next.right;
+   if(next.blocked)velocity.fill(0);
+   sync();
+  }
+  for(let j=0;j<N;j++){acceleration[j]=(velocity[j]-old[j])/dt;force[j]=mode==='viscosity'?acceleration[j]*f.rho:drive*f.rho;}
+  for(const p of tracers){p.x+=sample(velocity,p.s)*22*dt;if(p.x>574)p.x=112;if(p.x<112)p.x=574;}
+  packet+=sample(velocity,.5)*22*dt;if(packet>574){packet=112;trail=[];}if(packet<112){packet=574;trail=[];}
+  belt+=wall*22*dt;
+  if(mode==='time'){
+   squeeze+=((pushing?flow:0)-squeeze)*Math.min(1,dt*12);
+   const speed=Math.min(380,Math.max(0,sample(velocity,.5))*140);
+   for(const p of jet){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=(fluid==='air'?0:145)*dt;p.age+=dt;}
+   jet=jet.filter(p=>p.y<351&&p.x<652&&p.age<3);
+   if(speed>3){for(let i=0;i<2;i++)jet.push({x:343+speed*dt*i/2,y:215,vx:speed,vy:fluid==='air'?Math.sin(clock*13)*10:0,age:0});}
+   if(jet.length>180)jet.splice(0,jet.length-180);
+  }
+ }
+ if(mode!=='compare'&&mode!=='vortex'){trail.push({x:packet,y:mode==='transport'?230:mode==='pressure'?310:230});if(trail.length>70)trail.shift();}
+}
+function text(str,x,y,color='#405469',size=18,align='left'){ctx.fillStyle=color;ctx.font=`${size}px system-ui,sans-serif`;ctx.textAlign=align;ctx.fillText(str,x,y);}
+function line(x1,y1,x2,y2,color,width=2){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke();}
+function rounded(x,y,w,h,r,fill,stroke){ctx.beginPath();ctx.roundRect(x,y,w,h,r);if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();}}
+function arrow(x,y,dx,dy,color,width=4){const length=Math.hypot(dx,dy);if(length<2)return;const a=Math.atan2(dy,dx);line(x,y,x+dx,y+dy,color,width);ctx.beginPath();ctx.moveTo(x+dx,y+dy);ctx.lineTo(x+dx-11*Math.cos(a-.45),y+dy-11*Math.sin(a-.45));ctx.lineTo(x+dx-11*Math.cos(a+.45),y+dy-11*Math.sin(a+.45));ctx.closePath();ctx.fillStyle=color;ctx.fill();}
+function handle(x,y,color,horizontal=false){ctx.beginPath();ctx.arc(x,y,15,0,Math.PI*2);ctx.fillStyle='white';ctx.fill();ctx.strokeStyle=color;ctx.lineWidth=3;ctx.stroke();if(horizontal){arrow(x-8,y,16,0,color,2);arrow(x+8,y,-16,0,color,2);}else{arrow(x,y-8,0,16,color,2);arrow(x,y+8,0,-16,color,2);}}
+function drop(x,y,color,r=7){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();}
+function channelPath(center,h){ctx.beginPath();ctx.moveTo(110,center-(typeof h==='function'?h(110):h));for(let x=110;x<=575;x+=5)ctx.lineTo(x,center-(typeof h==='function'?h(x):h));for(let x=575;x>=110;x-=5)ctx.lineTo(x,center+(typeof h==='function'?h(x):h));ctx.closePath();}
+function channel(center,h,f,showPacket=true){
+ channelPath(center,h);const gradient=ctx.createLinearGradient(0,center-60,0,center+60);gradient.addColorStop(0,f.color+'35');gradient.addColorStop(.55,f.color+'78');gradient.addColorStop(1,f.color+'45');ctx.fillStyle=gradient;ctx.fill();
+ ctx.save();channelPath(center,h);ctx.clip();
+ for(const p of tracers){const hh=typeof h==='function'?h(p.x):h;const y=center+(p.s*2-1)*hh;const speed=mode==='transport'?transportSpeed(p.x):sample(velocity,p.s);line(p.x-clamp(speed*5,-35,35),y,p.x,y,f.color+'99',3);drop(p.x,y,'#ffffffc9',2.5);}
+ if($('show-trail').checked&&showPacket&&trail.length>1){ctx.beginPath();trail.forEach((p,i)=>i?ctx.lineTo(p.x,center):ctx.moveTo(p.x,center));ctx.strokeStyle='#253e59a0';ctx.lineWidth=3;ctx.stroke();}
+ ctx.restore();
+ for(const side of [-1,1]){ctx.beginPath();for(let x=110;x<=575;x+=5){const y=center+side*(typeof h==='function'?h(x):h);x===110?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.strokeStyle='#a3b4c2';ctx.lineWidth=7;ctx.stroke();ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();}
+ if(showPacket){drop(packet,center,'white',10);drop(packet,center,'#243d56',6);}
+}
+function reservoir(x,p,name,f){
+ const level=260-p*160;
+ if(f===fluids.air){
+  rounded(x,65,62,300,10,f.color+'30','#9cafc0');
+  line(x+31,100,x+31,260,'#b4c3cf',5);handle(x+31,level,colors.pressure);
+  text(name,x+31,394,colors.pressure,21,'center');return;
+ }
+ rounded(x,level,62,365-level,2,f.color+'75');
+ ctx.beginPath();ctx.moveTo(x,65);ctx.lineTo(x,365);ctx.lineTo(x+62,365);ctx.lineTo(x+62,65);ctx.strokeStyle='#9cafc0';ctx.lineWidth=5;ctx.stroke();
+ for(let y=100;y<=260;y+=40)line(x+48,y,x+60,y,'#718ca4',2);
+ line(x-5,level,x+67,level,colors.pressure,4);handle(x+31,level,colors.pressure);
+ text(name,x+31,394,colors.pressure,21,'center');
+}
+function velocityArrow(x,y,v){if($('show-velocity').checked){arrow(x,y,clamp(v*22,-95,95),0,'#314b65',4);text('u',x+4,y-12,'#314b65',20);}}
+function drawPressure(){
+ const f=fluids[fluid];reservoir(48,left,'p₁',f);reservoir(575,right,'p₂',f);channel(310,39,f);
+ if($('show-force').checked){const d=(left-right)*130;arrow(340-d/2,220,d,0,colors.pressure);text('−∇p',340,191,colors.pressure,22,'center');}
+ velocityArrow(packet,310,sample(velocity,.5));
+ text(f.name,340,372,f.color,20,'center');
+}
+function drawViscosity(){
+ text('Même bille · même g · même hauteur',340,36,'#405469',21,'center');
+ balls.forEach((ball,i)=>{
+  const f=fluids[ball.key],x=66+i*142,selected=ball.key===fluid;
+  rounded(x-45,75,90,285,10,f.color+(ball.key==='air'?'12':'45'),selected?colors.viscosity:'#b3c2cf');
+  if(ball.key!=='air')line(x-42,89,x+42,89,f.color+'99',2);
+  text(f.name,x,64,f.color,21,'center');
+  for(let y=120;y<350;y+=40)line(x+33,y,x+43,y,'#9eb1c0',1);
+  if($('show-trail').checked)for(let j=0;j<ball.path.length;j+=8)drop(x,ball.path[j],'#63788950',3);
+  const fill=ctx.createRadialGradient(x-5,ball.y-6,1,x,ball.y,15);fill.addColorStop(0,'#ffffff');fill.addColorStop(.35,'#b4c3cf');fill.addColorStop(1,'#3b4d60');
+  ctx.beginPath();ctx.arc(x,ball.y,14,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();
+  if(!falling)handle(x,ball.y,colors.viscosity);
+  if($('show-force').checked)arrow(x+26,ball.y-24,0,48,colors.external,3);
+  if(selected&&falling&&ball.y<340){
+   if($('show-velocity').checked)arrow(x+52,ball.y,0,Math.min(65,ball.v*.5),'#314b65',3);
+   if($('show-force').checked){
+    arrow(x-26,ball.y,0,-48*fallMedia[ball.key].rho/8,colors.transport,3);
+    arrow(x,ball.y-17,0,-Math.min(72,fallDrag(ball.key,ball.v,dragScale)*.3),colors.viscosity,4);
+   }
+  }
+ });
+ text('↓ poids identiques',113,392,colors.external,17,'center');text('↑ poussée',303,392,colors.transport,17,'center');text('↑ résistance visqueuse',521,392,colors.viscosity,17,'center');
+}
+function drawTransport(){
+ const f=fluids[fluid];channel(230,half,f);
+ handle(340,230-half(340),colors.transport);handle(340,230+half(340),colors.transport);
+ text('Rétrécir / élargir',340,99,colors.transport,22,'center');
+ if($('show-velocity').checked){velocityArrow(165,230,transportSpeed(165));velocityArrow(330,230,transportSpeed(330));velocityArrow(490,230,transportSpeed(490));}
+ text('Q constant',340,355,colors.transport,20,'center');
+ text('Parcelle suivie',packet,150,'#314b65',18,'center');line(packet,159,packet,215,'#879aab',1);
+ if($('show-force').checked){
+  const v=transportSpeed(packet),derivative=(transportSpeed(packet+.1)-transportSpeed(packet-.1))/.2;
+  arrow(packet,280,clamp(v*derivative*1400,-95,95),0,colors.transport);text('a',packet,304,colors.transport,19,'center');
+ }
+}
+function drawExternal(){
+ const f=fluids[fluid];ctx.save();ctx.translate(342,230);ctx.rotate(angle*Math.PI/180);ctx.translate(-342,-230);channel(230,48,f);handle(570,230,colors.external);velocityArrow(packet,230,sample(velocity,.5));ctx.restore();
+ text('Incliner le tuyau',340,54,colors.external,22,'center');
+ if($('show-force').checked){arrow(72,107,0,91,colors.external);text('g',91,157,colors.external,24);}
+}
+function drawTime(){
+ const f=fluids[fluid],dent=squeeze*34,top=131+dent,bottom=286-dent;
+ text('Pression',185,46,colors.pressure,22,'center');
+ text('Accélération du jet',488,46,colors.time,22,'center');
+ // Flexible bottle silhouette; the nozzle remains fixed while the body is squeezed.
+ ctx.beginPath();ctx.moveTo(82,142);ctx.bezierCurveTo(92,115,140,top,182,top);
+ ctx.bezierCurveTo(223,top,250,135,269,163);ctx.lineTo(292,198);ctx.lineTo(327,198);
+ ctx.lineTo(327,231);ctx.lineTo(292,231);ctx.lineTo(269,264);
+ ctx.bezierCurveTo(250,291,225,bottom,182,bottom);ctx.bezierCurveTo(139,bottom,92,302,82,276);ctx.closePath();
+ const fill=ctx.createLinearGradient(80,0,290,0);fill.addColorStop(0,f.color+'35');fill.addColorStop(.5,f.color+'80');fill.addColorStop(1,f.color+'40');ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle='#8196a8';ctx.lineWidth=4;ctx.stroke();
+ rounded(313,192,22,45,4,'#e1e8ee','#778b9d');for(let y=198;y<237;y+=8)line(315,y,333,y,'#8d9dab',2);
+ rounded(335,207,10,16,2,'#dbe7f0','#7d94a7');
+ line(100,156,100,264,'#ffffff9c',5);
+ // Two finger pads indicate where to press, without covering the fluid.
+ rounded(159,top-30,48,20,9,pushing?'#a7c3dc':'#dce6ee','#8ba4ba');
+ rounded(159,bottom+10,48,20,9,pushing?'#a7c3dc':'#dce6ee','#8ba4ba');
+ arrow(183,top-68,0,30,colors.pressure,3);arrow(183,bottom+68,0,-30,colors.pressure,3);
+ if($('show-force').checked&&pushing)arrow(225,215,flow*72,0,colors.pressure,4);
+ if(fluid!=='air'){
+  rounded(348,354,304,19,5,'#dde9f0','#a2b5c5');
+  // Quasi-steady jet silhouette: the displayed range follows the current exit speed.
+  const speed=Math.min(380,Math.max(0,sample(velocity,.5))*140),flight=Math.sqrt(2*(351-215)/145);
+  if(speed>3){ctx.beginPath();for(let i=0;i<=80;i++){const t=i/80*flight,x=343+speed*t,y=215+72.5*t*t;if(x>651)break;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.strokeStyle=f.color+'b0';ctx.lineWidth=7;ctx.lineJoin='round';ctx.stroke();
+   if($('show-trail').checked)for(let i=0;i<15;i++){const t=((i/15+clock/flight)%1)*flight,x=343+speed*t;if(x<651)drop(x,215+72.5*t*t,'#ffffffd0',2.8);}
+  }
+ }else{
+  for(const p of jet.filter((_,i)=>i%5===0)){ctx.beginPath();ctx.ellipse(p.x,p.y,9+p.age*9,4+p.age*5,0,0,Math.PI*2);ctx.fillStyle=f.color+'40';ctx.fill();}
+ }
+
+ if($('show-velocity').checked){arrow(363,163,Math.min(220,sample(velocity,.5)*70),0,'#314b65',4);text('u',351,168,'#314b65',21);}
+ if($('show-force').checked){const a=sample(acceleration,.5);arrow(470,92,clamp(a*85,-90,90),0,colors.time,4);text('Du/Dt',470,126,colors.time,20,'center');}
+ text(pushing?'Bouteille pressée':'Appuyer sur la bouteille',183,397,colors.pressure,19,'center');
+ const pressureButton=document.querySelector('[data-mode="pressure"]');pressureButton.classList.toggle('contributing',pushing&&flow>0);
+}
+function drawCompare(){
+ text('Même Δp · même tuyau · même durée',340,39,'#405469',21,'center');
+ races.forEach((race,i)=>{
+  const f=fluids[race.key],y=83+i*79;
+  text(f.name,25,y+6,f.color,19);
+  rounded(116,y-21,456,42,8,f.color+'22','#b4c1cc');
+  rounded(118,y-18,Math.max(0,race.front-118),36,5,f.color+'99');
+  for(let x=136;x<race.front-10;x+=29)drop(x,y,'#ffffffa0',3);
+  line(race.front,y-22,race.front,y+22,f.color,4);
+ });
+ line(572,56,572,354,'#53677b',2);text('Traceur au centre',340,387,'#6b7d8e',18,'center');
+}
+function drawVortex(){
+ const q=concentration,r=98*Math.pow(1-q*.9,.65),stretch=150+155*q;
+ text('Spirale et étirement',340,40,colors.transport,23,'center');
+ for(let k=0;k<5;k++){
+  ctx.beginPath();for(let i=0;i<=150;i++){const z=(i/150-.5)*stretch,a=i/150*Math.PI*7+k*Math.PI*.4+clock*(1+q*5);const radius=r*(.65+.35*Math.abs(z)/(stretch/2));const x=340+Math.cos(a)*radius+z*.24,y=216+z+Math.sin(a)*radius*.23;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+  ctx.strokeStyle=k%2?'#dc8a36':'#278c96';ctx.lineWidth=3;ctx.stroke();
+ }
+ handle(340+r+40,215,colors.transport,true);text('Rapprocher la poignée',340,379,'#617588',18,'center');
+}
+function draw(){
+ ctx.setTransform(canvas.width/W,0,0,canvas.height/H,0,0);ctx.clearRect(0,0,W,H);
+ ({pressure:drawPressure,viscosity:drawViscosity,transport:drawTransport,external:drawExternal,time:drawTime,compare:drawCompare,vortex:drawVortex}[mode])();
+}
+const config={pressure:['Deux réservoirs','Écarter les niveaux, puis laisser les pressions s’équilibrer.','Pression à gauche','Pression à droite','Inverser les pressions'],viscosity:['Chute de billes','Remonter une bille, puis relâcher les quatre.','Hauteur de lâcher','Viscosités ×','Lâcher les billes'],transport:['Un passage plus étroit','Glisser une poignée violette.','Ouverture','Débit Q','Rétrécir / élargir'],external:['La pesanteur','Glisser la poignée pour incliner le tuyau.','Inclinaison',null,'Inverser la pente'],time:['Presser une bouteille','Appuyer sur la bouteille, maintenir, puis relâcher.','Pression exercée',null,'Maintenir pour presser'],compare:['Course des fluides','Modifier Δp, puis recommencer la course.','Différence de pression',null,'Relancer la course'],vortex:['Tourbillon','Glisser la poignée vers le centre.','Concentration',null,'Resserrer / élargir']};
+function sync(){
+ const a=$('parameter-a'),b=$('parameter-b');
+ a.min=mode==='external'?'-100':'0';a.max='100';
+ a.value=mode==='pressure'?left*100:mode==='viscosity'?releaseHeight*100:mode==='transport'?opening*100:mode==='external'?angle*100/35:mode==='time'?flow*100:mode==='compare'?(left-right)*100:concentration*100;
+ b.value=mode==='viscosity'?50+50*Math.log10(dragScale):mode==='transport'?flow*100:right*100;
+ $('value-a').textContent=mode==='external'?Math.round(angle)+'°':Math.round(Number(a.value))+' %';$('value-b').textContent=mode==='viscosity'?'≈ '+dragScale.toFixed(2).replace('.',','):Math.round(Number(b.value))+' %';
+ if(mode==='pressure'){const pct=x=>(Math.abs(x*100-Math.round(x*100))>1e-9?'≈ ':'')+Math.round(x*100)+' %';$('value-a').textContent=pct(left);$('value-b').textContent=pct(right);}
+ $('play').textContent=running?'Arrêter':'Animer';$('play').setAttribute('aria-pressed',String(running));
+}
+function configure(next){
+ if(grab){try{canvas.releasePointerCapture(grab.id);}catch{}}grab=null;pushing=false;wall=0;mode=next;document.querySelector('[data-mode="pressure"]').classList.remove('contributing');
+ let [title,hint,la,lb,action]=config[mode];
+ if(mode==='pressure'&&fluid==='air'){title='Deux réservoirs d’air';hint='Modifier une pression, puis laisser les deux s’équilibrer.';}$('scene-name').textContent=title;$('gesture').textContent=hint;$('label-a').textContent=la;$('label-b').textContent=lb||'';$('control-b').hidden=!lb;$('actuator').textContent=action;
+ $('model-label').textContent=mode==='vortex'?'Schéma · pas une simulation de la preuve':mode==='viscosity'?'Chute freinée · modèle qualitatif':'Modèle réduit · unités relatives';
+ canvas.setAttribute('aria-label',title+'. '+hint+' Les curseurs proposent les mêmes réglages.');
+ document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
+ document.querySelectorAll('[data-fluid]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.fluid===fluid));b.disabled=mode==='compare'||mode==='vortex';});
+ $('compare').setAttribute('aria-pressed',String(mode==='compare'));$('vortex').setAttribute('aria-pressed',String(mode==='vortex'));
+ const general=fluid==='ketchup'&&mode!=='vortex'||mode==='compare';$('stress-term').textContent=general?'∇ · τ':'μ ∇²u';$('force-term').textContent=mode==='external'||mode==='viscosity'?'ρg':'ρf';
+ $('constraints').textContent=general?'∇ · u = 0 · ρ constante · τ : loi du fluide':'∇ · u = 0 · ρ, μ constantes';
+ document.querySelector('.controls').style.setProperty('--control-color',mode==='time'?colors.pressure:colors[mode]||colors.pressure);$('force-swatch').style.color=colors[mode]||colors.pressure;
+ $('overlay-name').textContent=mode==='time'||mode==='transport'?'Accélération':'Force';
+ document.querySelector('.legend').hidden=mode==='compare'||mode==='vortex';
+ if(mode==='compare'){left=.65;right=0;}
+ if(mode==='pressure')pressureInitial=[left,right];
+ reset();sync();
+}
+function applyParameters(){
+ const a=Number($('parameter-a').value)/100,b=Number($('parameter-b').value)/100;
+ if(mode==='pressure'){left=a;right=b;pressureInitial=[left,right];}else if(mode==='viscosity'){releaseHeight=a;dragScale=Math.pow(10,2*b-1);prepareFall();}else if(mode==='transport'){opening=a;flow=b;}else if(mode==='external')angle=a*35;else if(mode==='time')flow=a;else if(mode==='compare'){left=a;right=0;}else concentration=a;
+ sync();draw();
+}
+function location(event){const box=canvas.getBoundingClientRect();return {x:(event.clientX-box.left)*W/box.width,y:(event.clientY-box.top)*H/box.height};}
+canvas.addEventListener('pointerdown',event=>{
+ const p=location(event);let kind=null;
+ if(mode==='pressure'&&p.x<132)kind='left';else if(mode==='pressure'&&p.x>553)kind='right';else if(mode==='viscosity'&&p.x>20&&p.x<550){kind='ball';falling=false;}else if(mode==='transport'&&Math.abs(p.x-340)<65)kind='opening';else if(mode==='external'&&p.x>430)kind='angle';else if(mode==='time'&&p.x>65&&p.x<335&&p.y>90&&p.y<340){kind='push';pushing=true;}else if(mode==='vortex')kind='vortex';
+ if(!kind)return;event.preventDefault();grab={kind,id:event.pointerId,x:p.x,last:performance.now()};canvas.setPointerCapture(event.pointerId);running=true;sync();move(event);
+});
+function move(event){
+ if(!grab||event.pointerId!==grab.id)return;const p=location(event),now=performance.now();
+ if(grab.kind==='left')left=clamp((260-p.y)/160,0,1);if(grab.kind==='right')right=clamp((260-p.y)/160,0,1);
+ if(grab.kind==='left'||grab.kind==='right')pressureInitial=[left,right];
+ if(grab.kind==='ball'){releaseHeight=clamp((340-p.y)/230,0,1);prepareFall();}
+ if(grab.kind==='opening')opening=clamp((Math.abs(p.y-230)-10)/47,0,1);
+ if(grab.kind==='angle')angle=clamp(Math.atan2(p.y-230,p.x-342)*180/Math.PI,-35,35);
+ if(grab.kind==='vortex')concentration=clamp((150-Math.abs(p.x-340))/110,0,1);
+ grab.x=p.x;grab.last=now;sync();draw();
+}
+canvas.addEventListener('pointermove',move);
+function release(){if(grab?.kind==='ball')falling=true;pushing=false;grab=null;sync();draw();}
+canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);canvas.addEventListener('lostpointercapture',release);
+function act(){
+ if(mode==='viscosity'){prepareFall();falling=true;running=true;}else if(mode==='pressure'){[left,right]=[right,left];pressureInitial=[left,right];}else if(mode==='transport')opening=opening<.5?1:.15;else if(mode==='external')angle=angle>0?-25:25;else if(mode==='compare')reset();else if(mode==='vortex')concentration=concentration<.5?.9:.1;
+ sync();draw();
+}
+function hold(){if(mode==='time')pushing=true;running=true;sync();}
+function unhold(){pushing=false;sync();}
+$('actuator').addEventListener('pointerdown',event=>{if(mode==='time'){event.preventDefault();$('actuator').setPointerCapture(event.pointerId);hold();}});
+$('actuator').addEventListener('pointerup',unhold);$('actuator').addEventListener('pointercancel',unhold);$('actuator').addEventListener('lostpointercapture',unhold);
+$('actuator').addEventListener('keydown',event=>{if((event.key===' '||event.key==='Enter')&&(mode==='time')){event.preventDefault();hold();}});
+$('actuator').addEventListener('keyup',event=>{if(event.key===' '||event.key==='Enter')unhold();});$('actuator').addEventListener('blur',unhold);
+$('actuator').addEventListener('click',act);
+$('parameter-a').addEventListener('input',applyParameters);$('parameter-b').addEventListener('input',applyParameters);
+for(const id of ['show-velocity','show-force','show-trail'])$(id).addEventListener('change',draw);
+$('play').addEventListener('click',()=>{running=!running;pushing=false;sync();});$('reset').addEventListener('click',reset);
+$('decompose').addEventListener('click',()=>{const expanded=$('equation').classList.toggle('expanded');$('decompose').setAttribute('aria-expanded',String(expanded));$('decompose').textContent=expanded?'Regrouper : Du/Dt':'Décomposer l’accélération';document.querySelector('.equation-groups').style.gridTemplateColumns=expanded?'47% 53%':'34% 66%';});
+$('compare').addEventListener('click',()=>configure(mode==='compare'?'pressure':'compare'));$('vortex').addEventListener('click',()=>configure(mode==='vortex'?'pressure':'vortex'));
+for(const b of document.querySelectorAll('[data-mode]'))b.addEventListener('click',()=>configure(b.dataset.mode));
+for(const b of document.querySelectorAll('[data-fluid]'))b.addEventListener('click',()=>{fluid=b.dataset.fluid;if(mode==='viscosity'){document.querySelectorAll('[data-fluid]').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.fluid===fluid)));$('stress-term').textContent=fluid==='ketchup'?'∇ · τ':'μ ∇²u';$('constraints').textContent=fluid==='ketchup'?'∇ · u = 0 · ρ constante · τ : loi du fluide':'∇ · u = 0 · ρ, μ constantes';draw();}else configure(mode);});
+window.addEventListener('blur',()=>{release();unhold();});
+new ResizeObserver(()=>{const ratio=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(canvas.clientWidth*ratio);canvas.height=Math.round(canvas.clientWidth*H/W*ratio);draw();}).observe(canvas);
+setInterval(()=>{if(running&&!document.hidden){step(.03);draw();}},30);
+configure('pressure');
+})();
+</script>
+</body></html>

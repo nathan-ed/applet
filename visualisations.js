@@ -76,5 +76,19 @@ window.CATALOGUE = [
     "chapter": "1 Calcul intégral",
     "status": "en-ligne",
     "path": "visualisations/4M1/1-calcul-integral/theoreme-de-la-moyenne.html"
+  },
+  {
+    "title": "Navier–Stokes",
+    "category": "3M2",
+    "chapter": "Divers",
+    "status": "en-ligne",
+    "path": "visualisations/3M2/divers/navier-stokes.html"
+  },
+  {
+    "title": "Esquisser f′ à partir du graphe de f",
+    "category": "3M2",
+    "chapter": "Divers",
+    "status": "en-ligne",
+    "path": "visualisations/3M2/divers/derivee-d-apres-le-graphe.html"
   }
 ];

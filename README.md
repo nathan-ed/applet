@@ -6,6 +6,7 @@ chapitre, avec un statut de publication.
 | classe | chapitre | dossier |
 |---|---|---|
 | `3M2` | `C1 Boîte à outils` | `visualisations/3M2/c1-boite-a-outils/` |
+| `3M2` | `Divers` | `visualisations/3M2/divers/` |
 | `4M1` | `1 Calcul intégral` | `visualisations/4M1/1-calcul-integral/` |
 
 `visualisations/brouillon/` regroupe les anciennes visualisations pas encore

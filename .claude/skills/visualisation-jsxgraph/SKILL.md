@@ -22,11 +22,12 @@ Corriger aussi `references/gabarit.html` quand la regle touche la mise en page.
 
 ## 1. Ce qu'il faut demander avant d'ecrire
 
-- **la classe** et **le chapitre**. Pour l'instant tout va dans l'un des deux :
+- **la classe** et **le chapitre**. Classes et chapitres disponibles :
 
   | classe | chapitre | dossier |
   |---|---|---|
   | `3M2` | `C1 Boîte à outils` | `visualisations/3M2/c1-boite-a-outils/` |
+  | `3M2` | `Divers` | `visualisations/3M2/divers/` |
   | `4M1` | `1 Calcul intégral` | `visualisations/4M1/1-calcul-integral/` |
 
   D'autres classes et chapitres pourront s'ajouter ; demander lequel si le sujet
@@ -47,6 +48,28 @@ Seul `en-ligne` s'affiche : la page ne montre aucune pastille de statut.
 - **Pas de texte explicatif.** Un titre, la figure, les reglages, les mesures.
   Aucun paragraphe de cours, aucun encadre « ce qui se passe », aucun verdict
   commente, aucune note pedagogique, aucune description. La figure explique.
+- **Manipulation directe et objets reconnaissables.** Pour une experience physique,
+  rendre les objets de la figure manipulables a la souris et au doigt (paroi,
+  niveau, direction de force). Montrer le milieu, le geste et son effet ; les
+  nuages de points et les fleches seuls ne suffisent pas. Relier visuellement
+  les commandes aux termes de l’equation avec des couleurs coherentes.
+- **Viscosite : distinguer μ de μ/ρ.** Pour comparer la resistance visqueuse
+  de fluides familiers, privilegier la chute de billes identiques. La diffusion
+  du mouvement depend de μ/ρ et peut donner une impression trompeuse sur μ.
+  Tenir compte de la poussee d’Archimede et signaler les echelles qualitatives.
+  Montrer que g est commun a tous les fluides et representer le poids de billes
+  identiques par des fleches identiques ; distinguer g de l’acceleration nette.
+- **Navier–Stokes : forme compacte d’abord.** Afficher ρ Du/Dt comme
+  acceleration du fluide ; rendre sa decomposition en variation locale et
+  transport accessible sur demande. Ne pas presenter ce membre comme la
+  solution ou une simple sortie : la vitesse et la pression sont les inconnues.
+- **Acceleration : un geste et un mouvement visible.** Une bouteille que
+  l’on presse et un jet qui accelere donnent une lecture plus directe qu’un
+  point fixe et des fleches seuls. Distinguer la pression appliquee de
+  l’acceleration observee et relier les deux membres de l’equation.
+- **Reservoirs communicants.** Faire evoluer les niveaux et les pressions
+  avec le debit, en conservant le volume transfere. Les commandes suivent
+  cet equilibrage ; « Recommencer » restaure le desequilibre impose.
 - **Pas de style genere.** Pas d'emoji, pas de gras rhetorique, pas de listes a
   puces, pas de ton enthousiaste.
 - **Francais sans anglicismes.** « Animer / Arreter », pas « Play / Pause ».
@@ -136,7 +159,11 @@ message d'erreur ecrit.
 
 ## 4. Verifier
 
-Aucun navigateur n'est disponible : extraire le `<script>` et le passer a Node.
+Verifier la disponibilite de Chromium et de Playwright dans l’environnement ;
+s’ils sont disponibles, verifier les commandes interactives et le cadrage sur
+ordinateur et mobile. Le bac a sable peut bloquer le lancement de Chromium :
+demander l’escalade prevue par l’environnement dans ce cas.
+Dans tous les cas, extraire le `<script>` et le passer a Node.
 
 ```bash
 python3 - <<'PY'
