@@ -31,6 +31,8 @@ Corriger aussi `references/gabarit.html` quand la regle touche la mise en page.
   | `4M1` | `1 Calcul intégral` | `visualisations/4M1/1-calcul-integral/` |
   | `4M1` | `2 Exponentielle et logarithme` | `visualisations/4M1/2-exponentielle-et-logarithme/` |
 
+  Le chapitre commence par son numero (`2 Exponentielle et logarithme`,
+  `C1 Boîte à outils`) : la page s'en sert pour l'ordre et ne l'affiche pas.
   D'autres classes et chapitres pourront s'ajouter ; demander lequel si le sujet
   ne colle a aucun de ces chapitres. Les anciennes visualisations non classees restent
   dans `visualisations/brouillon/` en `non-publie` ;

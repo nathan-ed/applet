@@ -66,11 +66,70 @@
     }
 
     .filters {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .filtre {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 22px;
+      gap: 8px;
+    }
+
+    .filtre > span {
+      min-width: 76px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+
+    .pastilles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .pastilles button {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 5px 14px;
+      font: inherit;
+      font-size: 0.92rem;
+      cursor: pointer;
+    }
+
+    .pastilles button:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .pastilles button[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    #fTexte {
+      width: min(320px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 7px 12px;
+      font: inherit;
+      font-size: 0.92rem;
+      color: var(--text);
+    }
+
+    #fTexte:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: -1px;
+      border-color: var(--accent);
     }
 
     table {
@@ -175,6 +234,15 @@
       .count {
         margin-top: 14px;
       }
+
+      thead th,
+      tbody td {
+        padding: 10px 10px;
+      }
+
+      td.secondaire {
+        white-space: normal;
+      }
     }
   </style>
 </head>
@@ -190,11 +258,16 @@
 
   <main class="wrap">
     <section class="filters" aria-label="Filtres">
-      <div class="filter-row">
-        <label for="fYear">Classe</label>
-        <select id="fYear"></select>
-        <label for="fChapter">Chapitre</label>
-        <select id="fChapter"></select>
+      <div class="filtre">
+        <span id="lYear">Classe</span>
+        <div class="pastilles" id="fYear" role="group" aria-labelledby="lYear"></div>
+      </div>
+      <div class="filtre">
+        <span id="lChapter">Chapitre</span>
+        <div class="pastilles" id="fChapter" role="group" aria-labelledby="lChapter"></div>
+      </div>
+      <div class="filtre">
+        <span></span>
         <input type="search" id="fTexte" placeholder="Rechercher" aria-label="Rechercher">
       </div>
     </section>
@@ -264,29 +337,31 @@
       });
     }
 
-    function fillSelect(select, group, values, tousLabel) {
+    // « 1 Calcul intégral », « C1 Boîte à outils » : le numéro sert a l'ordre, pas a l'affichage
+    const nomChapitre = (chapitre) => (chapitre || "").replace(/^C?\d+\s+/, "");
+    const ordre = (a, b) => (a || "").localeCompare(b || "", "fr", { numeric: true });
+
+    function fillChips(conteneur, group, values, tousLabel, libelle) {
       if (!values.includes(state[group])) {
         state[group] = "all";
       }
-      select.innerHTML = ["all", ...values].map((value) => `
-        <option value="${value}" ${value === state[group] ? "selected" : ""}>
-          ${value === "all" ? tousLabel : value}
-        </option>
+      conteneur.innerHTML = ["all", ...values].map((value) => `
+        <button type="button" data-value="${value}" aria-pressed="${value === state[group]}">
+          ${value === "all" ? tousLabel : libelle(value)}
+        </button>
       `).join("");
-      select.disabled = values.length === 0;
     }
 
     function refresh() {
       const items = state.items.filter(publie);
-      const years = [...new Set(items.map((item) => item.category))]
-        .sort((a, b) => a.localeCompare(b, "fr"));
+      const years = [...new Set(items.map((item) => item.category))].sort(ordre);
       const chapters = [...new Set(items
         .filter((item) => state.year === "all" || item.category === state.year)
         .map((item) => item.chapter)
-        .filter(Boolean))].sort((a, b) => a.localeCompare(b, "fr"));
+        .filter(Boolean))].sort(ordre);
 
-      fillSelect(selYear, "year", years, "Toutes");
-      fillSelect(selChapter, "chapter", chapters, "Tous");
+      fillChips(selYear, "year", years, "Toutes", (v) => v);
+      fillChips(selChapter, "chapter", chapters, "Tous", nomChapitre);
       render();
     }
 
@@ -300,7 +375,7 @@
             <a href="${item.path}">${item.title}</a>
           </td>
           <td class="secondaire">${item.category}</td>
-          <td class="secondaire">${item.chapter || ""}</td>
+          <td class="secondaire">${nomChapitre(item.chapter)}</td>
         </tr>
       `).join("");
       count.textContent = `${items.length} / ${publicTotal}`;
@@ -343,15 +418,23 @@
       }
     });
 
-    selYear.addEventListener("change", () => {
-      state.year = selYear.value;
+    selYear.addEventListener("click", (event) => {
+      const bouton = event.target.closest("button[data-value]");
+      if (!bouton) {
+        return;
+      }
+      state.year = bouton.dataset.value;
       state.chapter = "all";
       refresh();
     });
 
-    selChapter.addEventListener("change", () => {
-      state.chapter = selChapter.value;
-      render();
+    selChapter.addEventListener("click", (event) => {
+      const bouton = event.target.closest("button[data-value]");
+      if (!bouton) {
+        return;
+      }
+      state.chapter = bouton.dataset.value;
+      refresh();
     });
 
     const chargerCatalogue = () => {
