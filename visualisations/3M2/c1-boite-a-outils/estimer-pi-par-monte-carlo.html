@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estimer π par Monte-Carlo</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsxgraph@1.9.2/distrib/jsxgraph.css">
+<script src="https://cdn.jsdelivr.net/npm/jsxgraph@1.9.2/distrib/jsxgraphcore.js"></script>
+<style>
+  :root{--bg:#f4f6f9;--card:#fff;--ink:#1f2933;--muted:#6b7785;--accent:#2563eb;--line:#dde3ea;--or:#c98a06}
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px 16px 40px;background:var(--bg);color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.5}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-size:1.5rem;margin:0 0 18px;text-align:center;font-weight:600}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .figures{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:520px){.figures{grid-template-columns:1fr}}
+  .fig{width:100%;aspect-ratio:1/1;border-radius:10px;border:1px solid var(--line);background:#fff;
+       touch-action:none;position:relative;overflow:hidden}
+  .fig svg{position:relative;z-index:1}
+  #nuage{position:absolute;left:0;top:0;width:100%;height:100%;z-index:0;pointer-events:none}
+  .row{display:flex;align-items:center;gap:12px;margin:16px 0 0}
+  .row label{min-width:78px;font-size:.92rem;color:var(--muted)}
+  input[type=range]{flex:1;accent-color:var(--accent)}
+  .val{min-width:96px;text-align:right;font-family:ui-monospace,Menlo,Consolas,monospace;
+       font-weight:700;color:var(--accent)}
+  .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;
+         padding:7px 12px;font:inherit;font-size:.88rem;cursor:pointer}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .mesures{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:16px}
+  @media (max-width:520px){.mesures{grid-template-columns:1fr}}
+  .m{border:1px solid var(--line);border-radius:8px;padding:8px 12px;display:flex;
+     justify-content:space-between;align-items:baseline;gap:10px}
+  .m span:first-child{font-size:.88rem;color:var(--muted)}
+  .m span:last-child{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700}
+  .dedans{color:var(--accent)}
+  .dehors{color:var(--or)}
+  .src{margin-top:16px;font-size:.85rem;color:var(--muted);text-align:center}
+  .src a{color:var(--accent)}
+  .retour{display:inline-block;margin:0 0 14px;font-size:.88rem;color:var(--muted);text-decoration:none}
+  .retour:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="retour" href="../../../index.html">← Retour au catalogue</a>
+  <h1>Estimer π par Monte-Carlo</h1>
+  <div class="card">
+    <div class="figures">
+      <div id="board" class="fig"></div>
+      <div id="graphe" class="fig"></div>
+    </div>
+
+    <div class="row">
+      <label for="vitesse">vitesse</label>
+      <input type="range" id="vitesse" min="0" max="30" step="1" value="10">
+      <span class="val" id="vitesseVal">10</span>
+    </div>
+
+    <div class="btns">
+      <button id="un">+ 1 point</button>
+      <button id="cent">+ 100 points</button>
+      <button id="play">Animer</button>
+      <button id="raz">Recommencer</button>
+    </div>
+
+    <div class="mesures">
+      <div class="m"><span>points tirés n</span><span id="mN">0</span></div>
+      <div class="m"><span>dans le disque k</span><span id="mK" class="dedans">0</span></div>
+      <div class="m"><span>estimation 4k/n</span><span id="mPi">−</span></div>
+      <div class="m"><span>écart avec π</span><span id="mEcart">−</span></div>
+    </div>
+
+    <p class="src">D'après <a href="https://www.geeksforgeeks.org/dsa/estimating-value-pi-using-monte-carlo/" target="_blank" rel="noopener">Estimating the value of Pi using Monte Carlo</a>, GeeksforGeeks.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var NMAX = 100000, MAXCOURBE = 800;
+  var BLEU = '#2563eb', OR = '#c98a06';
+
+  function fmt(x, d) { return x.toFixed(d).replace('.', ',').replace('-', '−'); }
+  function entier(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+  function arrondi(x, d) {
+    var p = Math.pow(10, d);
+    return (Math.abs(x - Math.round(x * p) / p) < 5e-13 ? '= ' : '≈ ') + fmt(x, d);
+  }
+
+  // ---------- Figure 1 : carre, disque, nuage de points ----------
+  var BBOX = [-1.12, 1.12, 1.12, -1.12];
+  var board = JXG.JSXGraph.initBoard('board', {
+    boundingbox: BBOX, keepaspectratio: true, axis: false,
+    showCopyright: false, showNavigation: false, pan: {enabled: false}, zoom: {enabled: false}
+  });
+  board.create('polygon', [[-1, -1], [1, -1], [1, 1], [-1, 1]], {
+    fillOpacity: 0, fixed: true, highlight: false, vertices: {visible: false},
+    borders: {strokeColor: '#1f2933', strokeWidth: 1.5, highlight: false, fixed: true}
+  });
+  board.create('circle', [[0, 0], 1], {
+    strokeColor: BLEU, strokeWidth: 2, fillOpacity: 0, fixed: true, highlight: false,
+    center: {visible: false}
+  });
+
+  var elBoard = document.getElementById('board');
+  var canvas = document.createElement('canvas');
+  canvas.id = 'nuage';
+  elBoard.insertBefore(canvas, elBoard.firstChild);
+  var ctx = canvas.getContext('2d');
+
+  // ---------- Figure 2 : estimation en fonction de n ----------
+  var graphe = JXG.JSXGraph.initBoard('graphe', {
+    boundingbox: [-10, 4.2, 110, 2.0], keepaspectratio: false, axis: false,
+    showCopyright: false, showNavigation: false, pan: {enabled: false}, zoom: {enabled: false}
+  });
+  // Axes : deux segments, puis un pool de graduations deplacees dans cadrerGraphe()
+  var MAXG = 12, gris = '#6b7785';
+  var opt0 = {fixed: true, highlight: false, strokeColor: gris, strokeWidth: 1,
+              point1: {visible: false}, point2: {visible: false}};
+  var axeX = graphe.create('segment', [[0, 0], [1, 0]], opt0),
+      axeY = graphe.create('segment', [[0, 0], [0, 1]], opt0);
+  var gx = [], gy = [];
+  for (var g = 0; g < MAXG; g++) {
+    gx.push({s: graphe.create('segment', [[0, 0], [0, 1]], opt0),
+             t: graphe.create('text', [0, 0, ''], {fixed: true, highlight: false, fontSize: 11,
+                anchorX: 'middle', anchorY: 'top', strokeColor: gris, cssStyle: 'white-space:nowrap'})});
+    gy.push({s: graphe.create('segment', [[0, 0], [1, 0]], opt0),
+             t: graphe.create('text', [0, 0, ''], {fixed: true, highlight: false, fontSize: 11,
+                anchorX: 'right', anchorY: 'middle', strokeColor: gris, cssStyle: 'white-space:nowrap'})});
+  }
+  function pasRond(brut) {
+    var e = Math.pow(10, Math.floor(Math.log10(brut))), m = brut / e;
+    return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * e;
+  }
+  function decimales(pas) { return Math.max(0, -Math.floor(Math.log10(pas) + 1e-9)); }
+  function bouger(seg, x0, y0, x1, y1) {
+    seg.point1.setPosition(JXG.COORDS_BY_USER, [x0, y0]);
+    seg.point2.setPosition(JXG.COORDS_BY_USER, [x1, y1]);
+  }
+
+  var lignePi = graphe.create('line', [[0, Math.PI], [1, Math.PI]], {
+    strokeColor: '#1f2933', strokeWidth: 1.5, dash: 2, fixed: true, highlight: false,
+    point1: {visible: false}, point2: {visible: false}
+  });
+  var textePi = graphe.create('text', [0, Math.PI, 'π'], {
+    fontSize: 15, anchorX: 'right', anchorY: 'bottom', fixed: true, highlight: false,
+    cssStyle: 'text-shadow:0 0 3px #fff'
+  });
+  var courbe = graphe.create('curve', [[], []], {
+    strokeColor: BLEU, strokeWidth: 2, highlight: false, fixed: true
+  });
+
+  // ---------- Donnees ----------
+  var px = new Float32Array(NMAX), py = new Float32Array(NMAX), est = new Float64Array(NMAX);
+  var n = 0, k = 0, dessines = 0;
+
+  function ecran(x, y) {
+    return [board.origin.scrCoords[1] + x * board.unitX, board.origin.scrCoords[2] - y * board.unitY];
+  }
+  function rayon() { return n < 1500 ? 2.6 : (n < 10000 ? 1.6 : (n < 40000 ? 0.9 : 0.6)); }
+  var rayonCourant = 2.6;
+
+  function dessiner(depuis) {
+    var r = rayonCourant;
+    for (var i = depuis; i < n; i++) {
+      var p = ecran(px[i], py[i]);
+      ctx.fillStyle = (px[i] * px[i] + py[i] * py[i] <= 1) ? BLEU : OR;
+      ctx.fillRect(p[0] - r, p[1] - r, 2 * r, 2 * r);
+    }
+    dessines = n;
+  }
+  function toutRedessiner() {
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(elBoard.clientWidth * dpr);
+    canvas.height = Math.round(elBoard.clientHeight * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, elBoard.clientWidth, elBoard.clientHeight);
+    ctx.globalAlpha = 0.75;
+    rayonCourant = rayon();
+    dessiner(0);
+  }
+
+  function ajouter(m) {
+    m = Math.min(m, NMAX - n);
+    for (var j = 0; j < m; j++) {
+      var x = 2 * Math.random() - 1, y = 2 * Math.random() - 1;
+      px[n] = x; py[n] = y;
+      if (x * x + y * y <= 1) k++;
+      n++;
+      est[n - 1] = 4 * k / n;
+    }
+    if (rayon() !== rayonCourant) toutRedessiner(); else dessiner(dessines);
+    render();
+    return m > 0;
+  }
+
+  var bas = 0, haut = 4;
+  function cadrerGraphe() {
+    var xmax = Math.max(10, n);
+    var dev = 0.05, debut = Math.floor(n / 10);
+    for (var i = debut; i < n; i++) dev = Math.max(dev, Math.abs(est[i] - Math.PI));
+    dev = Math.min(dev * 1.15, 1.25);
+    var y0 = Math.PI - dev, y1 = Math.PI + dev, h = y1 - y0;
+    var bb = [-0.2 * xmax, y1 + 0.06 * h, 1.06 * xmax, y0 - 0.14 * h];
+    graphe.setBoundingBox(bb, false);
+    var yb = y0 - 0.02 * h, ux = 1.26 * xmax / graphe.canvasWidth,
+        uy = h * 1.2 / graphe.canvasHeight;
+    bouger(axeX, 0, yb, xmax, yb);
+    bouger(axeY, 0, yb, 0, y1 + 0.04 * h);
+    var sx = pasRond(xmax / 4), i, j = 0;
+    for (i = sx; i <= xmax + 1e-9 && j < MAXG; i += sx, j++) {
+      bouger(gx[j].s, i, yb, i, yb - 5 * uy);
+      gx[j].t.setPosition(JXG.COORDS_BY_USER, [i, yb - 7 * uy]);
+      gx[j].t.setText(entier(Math.round(i)));
+      gx[j].s.setAttribute({visible: true}); gx[j].t.setAttribute({visible: true});
+    }
+    for (; j < MAXG; j++) { gx[j].s.setAttribute({visible: false}); gx[j].t.setAttribute({visible: false}); }
+    var sy = pasRond(h / 4), d = decimales(sy);
+    j = 0;
+    for (i = Math.ceil(yb / sy) * sy; i <= y1 + 1e-9 && j < MAXG; i += sy, j++) {
+      bouger(gy[j].s, 0, i, -5 * ux, i);
+      gy[j].t.setPosition(JXG.COORDS_BY_USER, [-7 * ux, i]);
+      gy[j].t.setText(fmt(i, d));
+      gy[j].s.setAttribute({visible: true}); gy[j].t.setAttribute({visible: true});
+    }
+    for (; j < MAXG; j++) { gy[j].s.setAttribute({visible: false}); gy[j].t.setAttribute({visible: false}); }
+    bas = yb; haut = y1 + 0.04 * h;
+    textePi.setPosition(JXG.COORDS_BY_USER, [1.05 * xmax, Math.PI]);
+  }
+
+  function render() {
+    document.getElementById('mN').textContent = entier(n);
+    document.getElementById('mK').textContent = entier(k);
+    if (n === 0) {
+      document.getElementById('mPi').textContent = '−';
+      document.getElementById('mEcart').textContent = '−';
+    } else {
+      var e = 4 * k / n;
+      document.getElementById('mPi').textContent = arrondi(e, 4);
+      document.getElementById('mEcart').textContent = '≈ ' + fmt(Math.abs(e - Math.PI), 4);
+    }
+
+    var pas = Math.max(1, Math.ceil(n / MAXCOURBE)), X = [], Y = [];
+    for (var i = 0; i < n; i += pas) { X.push(i + 1); Y.push(est[i]); }
+    if (n > 0 && X[X.length - 1] !== n) { X.push(n); Y.push(est[n - 1]); }
+
+    graphe.suspendUpdate();
+    cadrerGraphe();
+    for (i = 0; i < Y.length; i++) Y[i] = Math.min(haut, Math.max(bas, Y[i]));
+    courbe.dataX = X; courbe.dataY = Y;
+    graphe.unsuspendUpdate();
+  }
+
+  // ---------- Commandes ----------
+  var elVit = document.getElementById('vitesse'), elPlay = document.getElementById('play');
+  function vitesse() { return Math.round(Math.pow(10, parseInt(elVit.value, 10) / 10)); }
+  elVit.addEventListener('input', function () {
+    document.getElementById('vitesseVal').textContent = entier(vitesse());
+  });
+
+  var timer = null;
+  function arreter() {
+    if (timer) clearInterval(timer);
+    timer = null;
+    elPlay.textContent = 'Animer'; elPlay.classList.remove('on');
+  }
+  elPlay.addEventListener('click', function () {
+    if (timer) { arreter(); return; }
+    if (n >= NMAX) return;
+    elPlay.textContent = 'Arrêter'; elPlay.classList.add('on');
+    timer = setInterval(function () { if (!ajouter(vitesse()) || n >= NMAX) arreter(); }, 60);
+  });
+  document.getElementById('un').addEventListener('click', function () { ajouter(1); });
+  document.getElementById('cent').addEventListener('click', function () { ajouter(100); });
+  document.getElementById('raz').addEventListener('click', function () {
+    arreter(); n = 0; k = 0; toutRedessiner(); render();
+  });
+
+  // ---------- Cadrage ----------
+  function recadrer() {
+    board.resizeContainer(elBoard.clientWidth, elBoard.clientHeight, true, true);
+    board.setBoundingBox(BBOX, true);
+    var eg = document.getElementById('graphe');
+    graphe.resizeContainer(eg.clientWidth, eg.clientHeight, true, true);
+    toutRedessiner();
+    render();
+  }
+  if (window.ResizeObserver) {
+    new ResizeObserver(recadrer).observe(elBoard);
+  }
+
+  recadrer();
+})();
+</script>
+</body>
+</html>

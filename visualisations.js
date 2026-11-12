@@ -97,5 +97,12 @@ window.CATALOGUE = [
     "chapter": "2 Exponentielle et logarithme",
     "status": "en-ligne",
     "path": "visualisations/4M1/2-exponentielle-et-logarithme/exponentielle-et-logarithme.html"
+  },
+  {
+    "title": "Estimer π par Monte-Carlo",
+    "category": "3M2",
+    "chapter": "C1 Boîte à outils",
+    "status": "en-ligne",
+    "path": "visualisations/3M2/c1-boite-a-outils/estimer-pi-par-monte-carlo.html"
   }
 ];
