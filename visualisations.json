@@ -89,5 +89,12 @@
     "chapter": "Divers",
     "status": "en-ligne",
     "path": "visualisations/3M2/divers/derivee-d-apres-le-graphe.html"
+  },
+  {
+    "title": "Exponentielle et logarithme",
+    "category": "4M1",
+    "chapter": "2 Exponentielle et logarithme",
+    "status": "en-ligne",
+    "path": "visualisations/4M1/2-exponentielle-et-logarithme/exponentielle-et-logarithme.html"
   }
 ]

@@ -8,6 +8,7 @@ chapitre, avec un statut de publication.
 | `3M2` | `C1 Boîte à outils` | `visualisations/3M2/c1-boite-a-outils/` |
 | `3M2` | `Divers` | `visualisations/3M2/divers/` |
 | `4M1` | `1 Calcul intégral` | `visualisations/4M1/1-calcul-integral/` |
+| `4M1` | `2 Exponentielle et logarithme` | `visualisations/4M1/2-exponentielle-et-logarithme/` |
 
 `visualisations/brouillon/` regroupe les anciennes visualisations pas encore
 classees, toutes en `non-publie`.
@@ -33,8 +34,8 @@ python3 scripts/catalogue.py ajouter \
 ## Statuts
 
 - `non-publie` : n'apparait pas sur la page.
-- `brouillon` : apparait avec le tag « Brouillon ».
-- `en-ligne` : apparait avec le tag « En ligne ».
+- `brouillon` : n'apparait pas non plus (en travail).
+- `en-ligne` : apparait dans le tableau.
 
 Changer le statut :
 

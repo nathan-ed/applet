@@ -95,6 +95,16 @@
     }, 60);
   });
 
+  // Le cadre suit la taille reelle de la case (telephone, rotation d'ecran)
+  var BBOX = [-1.1, 1.1, 1.1, -1.1];
+  function recadrer() {
+    var el = document.getElementById('board');
+    board.resizeContainer(el.clientWidth, el.clientHeight, true, true);
+    board.setBoundingBox(BBOX, true);
+  }
+  if (window.ResizeObserver) new ResizeObserver(recadrer).observe(document.getElementById('board'));
+
+  recadrer();
   render();
 })();
 </script>

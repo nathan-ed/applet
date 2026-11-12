@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exponentielle et logarithme</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsxgraph@1.9.2/distrib/jsxgraph.css">
+<script src="https://cdn.jsdelivr.net/npm/jsxgraph@1.9.2/distrib/jsxgraphcore.js"></script>
+<style>
+  :root{--bg:#f4f6f9;--card:#fff;--ink:#1f2933;--muted:#6b7785;--accent:#2563eb;--line:#dde3ea;--or:#c98a06;--vert:#0f9a6e}
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px 16px 40px;background:var(--bg);color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.5}
+  .wrap{max-width:720px;margin:0 auto}
+  h1{font-size:1.5rem;margin:0 0 18px;text-align:center;font-weight:600}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+  #board{width:100%;aspect-ratio:1/1;border-radius:10px;border:1px solid var(--line);background:#fff;touch-action:none}
+  .row{display:flex;align-items:center;gap:12px;margin:16px 0 0}
+  .row label{min-width:78px;font-size:.92rem;color:var(--muted)}
+  input[type=range]{flex:1;accent-color:var(--accent)}
+  .val{min-width:96px;text-align:right;font-family:ui-monospace,Menlo,Consolas,monospace;
+       font-weight:700;color:var(--accent)}
+  .mes{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:12px;font-size:.92rem;color:var(--muted)}
+  .mes b{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--ink);font-weight:700}
+  .mes .e{color:var(--accent)} .mes .l{color:var(--vert)}
+  .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;
+         padding:7px 12px;font:inherit;font-size:.88rem;cursor:pointer}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .retour{display:inline-block;margin:0 0 14px;font-size:.88rem;color:var(--muted);text-decoration:none}
+  .retour:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="retour" href="../../../index.html">← Retour au catalogue</a>
+  <h1>Exponentielle et logarithme</h1>
+  <div class="card">
+    <div id="board"></div>
+
+    <div class="row">
+      <label for="param">a</label>
+      <input type="range" id="param" min="-3" max="1.6" step="0.01" value="0.5">
+      <span class="val" id="paramVal">0,50</span>
+    </div>
+
+    <div class="mes">
+      <span class="e">A <b id="mA"></b></span>
+      <span class="l">B <b id="mB"></b></span>
+    </div>
+    <div class="mes">
+      <span class="e">pente en A <b id="pA"></b></span>
+      <span class="l">pente en B <b id="pB"></b></span>
+      <span>produit des pentes <b id="pP"></b></span>
+    </div>
+
+    <div class="btns">
+      <button id="play">Animer</button>
+      <button id="tan" class="on">Tangentes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var BLEU = '#2563eb', VERT = '#0f9a6e', GRIS = '#9aa5b1', OR = '#c98a06';
+  var AMIN = -3, AMAX = 1.6;
+
+  function fmt(x) {
+    var s = (Math.abs(x) < 0.005 ? 0 : x).toFixed(2).replace('.', ',');
+    return s.charAt(0) === '-' ? '−' + s.slice(1) : s;
+  }
+  function arrondi(x) {   // « ≈ » seulement si l'arrondi n'est pas exact
+    return (Math.abs(x - Math.round(x * 100) / 100) < 5e-13 ? '= ' : '≈ ') + fmt(x);
+  }
+  function point(x, y) {  // coordonnees : un seul « ≈ » si l'une est arrondie
+    var exact = Math.abs(x - Math.round(x * 100) / 100) < 5e-13 &&
+                Math.abs(y - Math.round(y * 100) / 100) < 5e-13;
+    return (exact ? '= ' : '≈ ') + '(' + fmt(x) + ' ; ' + fmt(y) + ')';
+  }
+
+  var board = JXG.JSXGraph.initBoard('board', {
+    boundingbox: [-3.5, 5.5, 5.5, -3.5], keepaspectratio: true, axis: true,
+    showCopyright: false, showNavigation: false, pan: {enabled: false}, zoom: {enabled: false},
+    defaultAxes: {
+      x: {ticks: {minorTicks: 0, insertTicks: false, ticksDistance: 1, label: {fontSize: 11}}},
+      y: {ticks: {minorTicks: 0, insertTicks: false, ticksDistance: 1, label: {fontSize: 11}}}
+    }
+  });
+
+  var sansLabel = {withLabel: false, highlight: false, fixed: true};
+
+  // Courbes et axe de symetrie, crees une seule fois
+  board.create('line', [[0, 0], [1, 1]], {strokeColor: GRIS, dash: 2, strokeWidth: 1.5, highlight: false, fixed: true});
+  board.create('functiongraph', [function (x) { return Math.exp(x); }, -4, 2.2],
+    {strokeColor: BLEU, strokeWidth: 3, highlight: false});
+  board.create('functiongraph', [function (x) { return Math.log(x); }, 0.0005, 6],
+    {strokeColor: VERT, strokeWidth: 3, highlight: false});
+  board.create('text', [1.75, 5.1, 'y = eˣ'], {fontSize: 15, color: BLEU, fixed: true, highlight: false, cssStyle: 'white-space:nowrap'});
+  board.create('text', [3.9, 1.95, 'y = ln x'], {fontSize: 15, color: VERT, fixed: true, highlight: false, cssStyle: 'white-space:nowrap'});
+  board.create('text', [4.6, 5.0, 'y = x'], {fontSize: 13, color: GRIS, fixed: true, highlight: false});
+
+  // Objets mobiles
+  var segAB = board.create('segment', [[0, 1], [1, 0]], {strokeColor: OR, dash: 2, strokeWidth: 1.5, highlight: false, fixed: true});
+  var M = board.create('point', [0, 0], {size: 2.5, fillColor: OR, strokeColor: OR, fixed: true, withLabel: false, highlight: false});
+  var tA = board.create('line', [[0, 1], [1, 2]], {strokeColor: BLEU, strokeWidth: 1.5, strokeOpacity: 0.6, highlight: false, fixed: true});
+  var tB = board.create('line', [[1, 0], [2, 1]], {strokeColor: VERT, strokeWidth: 1.5, strokeOpacity: 0.6, highlight: false, fixed: true});
+  var B = board.create('point', [1, 0], {size: 5, fillColor: VERT, strokeColor: '#fff', name: 'B',
+    label: {offset: [10, -14], fontSize: 15, color: VERT, cssStyle: 'text-shadow:0 0 3px #fff'}, showInfobox: false});
+  var A = board.create('point', [0, 1], {size: 5, fillColor: BLEU, strokeColor: '#fff', name: 'A',
+    label: {offset: [-22, 12], fontSize: 15, color: BLEU, cssStyle: 'text-shadow:0 0 3px #fff'}, showInfobox: false});
+
+  var elParam = document.getElementById('param'),
+      elPlay = document.getElementById('play'),
+      elTan = document.getElementById('tan');
+
+  function borne(a) { return Math.min(AMAX, Math.max(AMIN, a)); }
+
+  function render() {
+    var a = parseFloat(elParam.value), ea = Math.exp(a);
+    document.getElementById('paramVal').textContent = fmt(a);
+    document.getElementById('mA').textContent = point(a, ea);
+    document.getElementById('mB').textContent = point(ea, a);
+    document.getElementById('pA').textContent = arrondi(ea);
+    document.getElementById('pB').textContent = arrondi(1 / ea);
+    document.getElementById('pP').textContent = arrondi(ea * (1 / ea));
+
+    board.suspendUpdate();
+    A.setPosition(JXG.COORDS_BY_USER, [a, ea]);
+    B.setPosition(JXG.COORDS_BY_USER, [ea, a]);
+    segAB.point1.setPosition(JXG.COORDS_BY_USER, [a, ea]);
+    segAB.point2.setPosition(JXG.COORDS_BY_USER, [ea, a]);
+    M.setPosition(JXG.COORDS_BY_USER, [(a + ea) / 2, (a + ea) / 2]);
+    tA.point1.setPosition(JXG.COORDS_BY_USER, [a, ea]);
+    tA.point2.setPosition(JXG.COORDS_BY_USER, [a + 1, ea + ea]);
+    tB.point1.setPosition(JXG.COORDS_BY_USER, [ea, a]);
+    tB.point2.setPosition(JXG.COORDS_BY_USER, [ea + ea, a + 1]);
+    board.unsuspendUpdate();
+  }
+
+  // A se deplace sur y = eˣ, B sur y = ln x : on lit l'abscisse (resp. l'ordonnee)
+  A.on('drag', function () { elParam.value = borne(A.X()); render(); });
+  B.on('drag', function () { elParam.value = borne(B.Y()); render(); });
+  elParam.addEventListener('input', render);
+
+  elTan.addEventListener('click', function () {
+    var on = !elTan.classList.contains('on');
+    elTan.classList.toggle('on', on);
+    tA.setAttribute({visible: on}); tB.setAttribute({visible: on});
+  });
+
+  var timer = null, sens = 1;
+  elPlay.addEventListener('click', function () {
+    if (timer) {
+      clearInterval(timer); timer = null;
+      elPlay.textContent = 'Animer'; elPlay.classList.remove('on');
+      return;
+    }
+    elPlay.textContent = 'Arrêter'; elPlay.classList.add('on');
+    timer = setInterval(function () {
+      var a = parseFloat(elParam.value) + 0.02 * sens;
+      if (a >= AMAX) { a = AMAX; sens = -1; }
+      if (a <= AMIN) { a = AMIN; sens = 1; }
+      elParam.value = a;
+      render();
+    }, 60);
+  });
+
+  // Le cadre suit la taille reelle de la case (rotation d'ecran, fenetre redimensionnee)
+  var BBOX = [-3.5, 5.5, 5.5, -3.5];
+  function recadrer() {
+    var el = document.getElementById('board');
+    board.resizeContainer(el.clientWidth, el.clientHeight, true, true);
+    board.setBoundingBox(BBOX, true);
+  }
+  if (window.ResizeObserver) new ResizeObserver(recadrer).observe(document.getElementById('board'));
+
+  recadrer();
+  render();
+})();
+</script>
+</body>
+</html>

@@ -29,9 +29,10 @@ Corriger aussi `references/gabarit.html` quand la regle touche la mise en page.
   | `3M2` | `C1 Boîte à outils` | `visualisations/3M2/c1-boite-a-outils/` |
   | `3M2` | `Divers` | `visualisations/3M2/divers/` |
   | `4M1` | `1 Calcul intégral` | `visualisations/4M1/1-calcul-integral/` |
+  | `4M1` | `2 Exponentielle et logarithme` | `visualisations/4M1/2-exponentielle-et-logarithme/` |
 
   D'autres classes et chapitres pourront s'ajouter ; demander lequel si le sujet
-  ne colle a aucun des deux. Les anciennes visualisations non classees restent
+  ne colle a aucun de ces chapitres. Les anciennes visualisations non classees restent
   dans `visualisations/brouillon/` en `non-publie` ;
 - **le statut** : `brouillon` ou `en-ligne`. Toujours demander, ne jamais choisir a la place.
 
@@ -48,6 +49,41 @@ Seul `en-ligne` s'affiche : la page ne montre aucune pastille de statut.
 - **Pas de texte explicatif.** Un titre, la figure, les reglages, les mesures.
   Aucun paragraphe de cours, aucun encadre « ce qui se passe », aucun verdict
   commente, aucune note pedagogique, aucune description. La figure explique.
+- **Pas de style genere.** Pas d'emoji, pas de gras rhetorique, pas de listes a
+  puces, pas de ton enthousiaste.
+- **Francais sans anglicismes.** « Animer / Arreter », pas « Play / Pause ».
+  Virgule decimale, signe moins typographique (`−`).
+- **Marquer `≈`** devant toute valeur qui n'est pas exacte a l'affichage :
+  resultat d'un calcul numerique (integrale, dichotomie) toujours, valeur
+  ponctuelle seulement si l'arrondi la change.
+
+  ```js
+  function arrondi(x) {   // « ≈ » seulement si l'arrondi n'est pas exact
+    return (Math.abs(x - Math.round(x * 100) / 100) < 5e-13 ? '' : '≈ ') + fmt(x);
+  }
+  ```
+- **Le signe porte la valeur** : `A ≈ (0,50 ; 1,65)`, `pente en A = 1,00`.
+  L'intitule ne contient pas de `=` : jamais « A = ≈ ». `arrondi()` rend donc
+  `= ` ou `≈ ` devant le nombre.
+- **Plusieurs valeurs dans une meme case** : nommer chacune avec son indice —
+  `c₁ ≈ 0,24   c₂ ≈ 2,90`. Jamais une liste entre parentheses ni separee par des
+  points-virgules seuls : on la lit comme les coordonnees d'un point. Une seule
+  valeur reste nue, l'intitule de la case suffit.
+- **Une seule colonne**, largeur maximale 720 px, la figure en haut.
+- **Deux figures a comparer** (une fonction et sa derivee, avant/apres) : les
+  placer **cote a cote** dans la carte (`display:grid;grid-template-columns:1fr 1fr`,
+  cases carrees `aspect-ratio:1/1`), et les empiler sous 520 px de large.
+  Un seul curseur ou point mobile commande les deux.
+- **Lien de retour** en haut de page :
+  `<a class="retour" href="../../../index.html">← Retour au catalogue</a>`
+  (trois niveaux depuis `visualisations/<classe>/<chapitre>/`). Deja dans le gabarit.
+- **Source en une ligne** en bas de carte quand la visualisation vient d'une video
+  ou d'un article : `D'après <a href="...">Titre</a>, Auteur.` Sinon, pas de ligne.
+
+### Visualisations de physique (ex. Navier–Stokes)
+
+Ces regles ne concernent que les experiences physiques.
+
 - **Manipulation directe et objets reconnaissables.** Pour une experience physique,
   rendre les objets de la figure manipulables a la souris et au doigt (paroi,
   niveau, direction de force). Montrer le milieu, le geste et son effet ; les
@@ -70,29 +106,6 @@ Seul `en-ligne` s'affiche : la page ne montre aucune pastille de statut.
 - **Reservoirs communicants.** Faire evoluer les niveaux et les pressions
   avec le debit, en conservant le volume transfere. Les commandes suivent
   cet equilibrage ; « Recommencer » restaure le desequilibre impose.
-- **Pas de style genere.** Pas d'emoji, pas de gras rhetorique, pas de listes a
-  puces, pas de ton enthousiaste.
-- **Francais sans anglicismes.** « Animer / Arreter », pas « Play / Pause ».
-  Virgule decimale, signe moins typographique (`−`).
-- **Marquer `≈`** devant toute valeur qui n'est pas exacte a l'affichage :
-  resultat d'un calcul numerique (integrale, dichotomie) toujours, valeur
-  ponctuelle seulement si l'arrondi la change.
-
-  ```js
-  function arrondi(x) {   // « ≈ » seulement si l'arrondi n'est pas exact
-    return (Math.abs(x - Math.round(x * 100) / 100) < 5e-13 ? '' : '≈ ') + fmt(x);
-  }
-  ```
-- **Plusieurs valeurs dans une meme case** : nommer chacune avec son indice —
-  `c₁ ≈ 0,24   c₂ ≈ 2,90`. Jamais une liste entre parentheses ni separee par des
-  points-virgules seuls : on la lit comme les coordonnees d'un point. Une seule
-  valeur reste nue, l'intitule de la case suffit.
-- **Une seule colonne**, largeur maximale 720 px, la figure en haut.
-- **Lien de retour** en haut de page :
-  `<a class="retour" href="../../../index.html">← Retour au catalogue</a>`
-  (trois niveaux depuis `visualisations/<classe>/<chapitre>/`). Deja dans le gabarit.
-- **Source en une ligne** en bas de carte quand la visualisation vient d'une video
-  ou d'un article : `D'après <a href="...">Titre</a>, Auteur.` Sinon, pas de ligne.
 
 ## 3. Ecrire le fichier
 
@@ -128,6 +141,16 @@ python3 scripts/catalogue.py chemin --annee 4M1 --chapitre "1 Calcul intégral" 
 - Reglages : `<input type="range">` HTML plutot que les curseurs JSXGraph, valeur
   affichee a droite en chasse fixe.
 - Animation : `setInterval` (~60 ms) pilote par un bouton « Animer » / « Arreter ».
+- Point deplacable sur une courbe par morceaux : un `point` ordinaire dont le
+  gestionnaire `drag` recalcule `X` et le replace par `setPosition` sur la courbe
+  (un point a coordonnees-fonctions n'est pas deplacable). Aux points anguleux,
+  afficher « non definie » et des cercles ouverts, pas une valeur.
+- Cadrage sur mobile : avec `keepaspectratio:true`, le plateau garde la taille
+  vue a l'initialisation et coupe la figure sur telephone. Toujours appeler
+  `recadrer()` (`resizeContainer` + `setBoundingBox`) au demarrage et sur
+  `ResizeObserver`. Deja dans le gabarit.
+- Etiquette de courbe (`y = ln x`) : `cssStyle:'white-space:nowrap'`, sinon
+  elle passe a la ligne sur mobile.
 - Au-dela de ~800 objets mobiles, l'affichage devient lent : plafonner le curseur.
 
 ### Saisie de valeurs et de fonctions
@@ -163,6 +186,10 @@ Verifier la disponibilite de Chromium et de Playwright dans l’environnement ;
 s’ils sont disponibles, verifier les commandes interactives et le cadrage sur
 ordinateur et mobile. Le bac a sable peut bloquer le lancement de Chromium :
 demander l’escalade prevue par l’environnement dans ce cas.
+Playwright n'est pas installe globalement : reprendre celui du depot mathalea
+(`NODE_PATH=~/Documents/projets/mathalea/node_modules node test.cjs`), avec un
+viewport mobile reel (`390x844`, `isMobile`, `hasTouch`). `chromium --headless
+--screenshot` ne suffit pas pour le mobile : sa fenetre etroite fausse le cadrage.
 Dans tous les cas, extraire le `<script>` et le passer a Node.
 
 ```bash
@@ -216,3 +243,22 @@ affichage de l'adresse de la page. La publication GitLab Pages vient de
 Verification seule : `scripts/deployer.sh --verifier`.
 
 Ne pas publier sans que l'utilisateur l'ait demande.
+
+`deployer.sh` fait `git add -A` : il embarque tout ce qui traine (visualisations
+d'un autre travail, `README.md`, ce skill). Lancer `git status` avant et le
+dire a l'utilisateur. Les scripts se lancent depuis la racine du depot
+(`scripts/catalogue.py`), pas depuis le dossier du skill.
+
+Si le push `forge` echoue en `Permission denied (publickey)` (agent SSH vide),
+`glab auth status` suffit souvent : pousser en HTTPS avec le jeton de `glab`,
+sans toucher a la config git :
+
+```bash
+git -c credential.helper= -c 'credential.helper=!glab auth git-credential' \
+  push https://forge.apps.education.fr/nathan.scheinmann-ext/visualisation.git main
+```
+
+Page : `https://visualisation-1f07a2.forge.apps.education.fr/` (adresse reelle
+des Pages). Lien court a donner aux eleves : `edu.ge.ch/qr/vmaths`, qui redirige
+vers cette page. L'adresse `nathan.scheinmann-ext.forge.apps.education.fr/visualisation/`
+affichee par `deployer.sh` ne repond pas.
